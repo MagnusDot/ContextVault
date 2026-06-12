@@ -1,0 +1,76 @@
+<svg viewBox="0 0 860 400" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif">
+  <title>ContextVault Architecture</title>
+  <rect width="860" height="400" fill="#0d1117" rx="12"/>
+  <text x="430" y="34" text-anchor="middle" fill="#e6edf3" font-size="14" font-weight="600">ContextVault — System Architecture</text>
+
+  <!-- CLIENTS -->
+  <rect x="30" y="58" width="180" height="120" fill="#161b22" rx="8" stroke="#30363d" stroke-width="1"/>
+  <text x="120" y="78" text-anchor="middle" fill="#8b949e" font-size="10" font-weight="600" letter-spacing="1">CLIENTS</text>
+  <rect x="46" y="88" width="148" height="36" fill="#1f2937" rx="6" stroke="#1f6feb" stroke-width="1"/>
+  <text x="120" y="103" text-anchor="middle" fill="#79c0ff" font-size="11" font-weight="600">Claude Code</text>
+  <text x="120" y="117" text-anchor="middle" fill="#8b949e" font-size="9">CLI / IDE extension</text>
+  <rect x="46" y="132" width="148" height="36" fill="#1f2937" rx="6" stroke="#388bfd" stroke-width="1"/>
+  <text x="120" y="147" text-anchor="middle" fill="#79c0ff" font-size="11" font-weight="600">Claude Desktop</text>
+  <text x="120" y="161" text-anchor="middle" fill="#8b949e" font-size="9">macOS app</text>
+
+  <!-- MCP SERVER -->
+  <rect x="290" y="58" width="280" height="220" fill="#161b22" rx="8" stroke="#30363d" stroke-width="1"/>
+  <text x="430" y="78" text-anchor="middle" fill="#8b949e" font-size="10" font-weight="600" letter-spacing="1">CLAUDEVAULT MCP SERVER</text>
+  <rect x="306" y="88" width="116" height="32" fill="#0d419d" rx="6"/>
+  <text x="364" y="101" text-anchor="middle" fill="#79c0ff" font-size="10" font-weight="600">WebSocket :9876</text>
+  <text x="364" y="113" text-anchor="middle" fill="#a5d6ff" font-size="8">JSON-RPC 2.0</text>
+  <rect x="438" y="88" width="116" height="32" fill="#0d419d" rx="6"/>
+  <text x="496" y="101" text-anchor="middle" fill="#79c0ff" font-size="10" font-weight="600">HTTP/SSE :9877</text>
+  <text x="496" y="113" text-anchor="middle" fill="#a5d6ff" font-size="8">POST /message · GET /sse</text>
+  <rect x="306" y="130" width="248" height="56" fill="#21262d" rx="6"/>
+  <text x="430" y="145" text-anchor="middle" fill="#e6edf3" font-size="10" font-weight="600">10 MCP Tools</text>
+  <text x="316" y="160" fill="#8b949e" font-size="8.5">get_project_context · search_code · read_chunk</text>
+  <text x="316" y="172" fill="#8b949e" font-size="8.5">write_note · compress · retrieve · index_codebase…</text>
+  <rect x="306" y="196" width="248" height="72" fill="#21262d" rx="6"/>
+  <text x="430" y="211" text-anchor="middle" fill="#e6edf3" font-size="10" font-weight="600">Compression Pipeline</text>
+  <rect x="314" y="218" width="54" height="18" fill="#1f3a1f" rx="4"/>
+  <text x="341" y="230" text-anchor="middle" fill="#56d364" font-size="8" font-weight="600">SmartCrusher</text>
+  <rect x="374" y="218" width="52" height="18" fill="#1f3a1f" rx="4"/>
+  <text x="400" y="230" text-anchor="middle" fill="#56d364" font-size="8" font-weight="600">CacheAligner</text>
+  <rect x="432" y="218" width="32" height="18" fill="#1f3a1f" rx="4"/>
+  <text x="448" y="230" text-anchor="middle" fill="#56d364" font-size="8" font-weight="600">CCR</text>
+  <rect x="470" y="218" width="76" height="18" fill="#1f3a1f" rx="4"/>
+  <text x="508" y="230" text-anchor="middle" fill="#56d364" font-size="8" font-weight="600">ResponseCompressor</text>
+  <text x="316" y="252" fill="#8b949e" font-size="8">JSON → columnar · Logs → errors only · KV-cache prefix stable</text>
+  <text x="316" y="264" fill="#8b949e" font-size="8">Large content offloaded to CCRStore · retrieve on demand</text>
+  <rect x="306" y="278" width="248" height="26" fill="#21262d" rx="6"/>
+  <text x="430" y="290" text-anchor="middle" fill="#8b949e" font-size="8.5">Auto-discovery: ~/.config/claude/ide/claudevault.lock</text>
+  <text x="430" y="300" text-anchor="middle" fill="#6e7681" font-size="8">{ pid, wsPort: 9876, httpPort: 9877, version }</text>
+
+  <!-- STORAGE -->
+  <rect x="640" y="58" width="195" height="145" fill="#161b22" rx="8" stroke="#30363d" stroke-width="1"/>
+  <text x="737" y="78" text-anchor="middle" fill="#8b949e" font-size="10" font-weight="600" letter-spacing="1">STORAGE</text>
+  <rect x="656" y="88" width="163" height="46" fill="#21262d" rx="6"/>
+  <text x="737" y="103" text-anchor="middle" fill="#e6edf3" font-size="10" font-weight="600">~/.claudevault/</text>
+  <text x="666" y="116" fill="#8b949e" font-size="8">project-slug/.project.json</text>
+  <text x="666" y="127" fill="#8b949e" font-size="8">notes/context.md · architecture.md…</text>
+  <rect x="656" y="142" width="163" height="38" fill="#21262d" rx="6"/>
+  <text x="737" y="157" text-anchor="middle" fill="#e6edf3" font-size="10" font-weight="600">BM25 Code Index</text>
+  <text x="666" y="170" fill="#8b949e" font-size="8">code-index.json · savings.json</text>
+  <rect x="656" y="188" width="163" height="26" fill="#21262d" rx="6"/>
+  <text x="737" y="204" text-anchor="middle" fill="#8b949e" font-size="9">Plain Markdown · Zero dependencies</text>
+
+  <!-- MENUBAR -->
+  <rect x="290" y="342" width="280" height="44" fill="#161b22" rx="8" stroke="#30363d" stroke-width="1"/>
+  <text x="430" y="360" text-anchor="middle" fill="#e6edf3" font-size="11" font-weight="600">⬡ ContextVault Menubar App</text>
+  <text x="430" y="377" text-anchor="middle" fill="#8b949e" font-size="9">SwiftUI · 3-col NavigationSplitView · RAG Explorer · Graph · Token Tracker</text>
+
+  <!-- ARROWS -->
+  <defs>
+    <marker id="ab" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#1f6feb"/></marker>
+    <marker id="ab2" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#388bfd"/></marker>
+    <marker id="ag" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#8b949e"/></marker>
+  </defs>
+  <path d="M194 104 L290 104" fill="none" stroke="#1f6feb" stroke-width="1.5" marker-end="url(#ab)"/>
+  <text x="242" y="99" text-anchor="middle" fill="#79c0ff" font-size="8">WS</text>
+  <path d="M194 150 Q242 150 290 118" fill="none" stroke="#388bfd" stroke-width="1.5" marker-end="url(#ab2)"/>
+  <text x="250" y="146" text-anchor="middle" fill="#79c0ff" font-size="8">HTTP</text>
+  <path d="M570 155 L640 155" fill="none" stroke="#30363d" stroke-width="1.5" marker-end="url(#ag)"/>
+  <text x="605" y="150" text-anchor="middle" fill="#8b949e" font-size="8">R/W</text>
+  <path d="M430 314 L430 342" fill="none" stroke="#30363d" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#ag)"/>
+</svg>

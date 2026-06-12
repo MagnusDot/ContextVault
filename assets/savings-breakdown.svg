@@ -1,0 +1,92 @@
+<svg viewBox="0 0 800 360" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif">
+  <title>Token savings per ContextVault feature</title>
+  <rect width="800" height="360" fill="#0d1117" rx="12"/>
+  <text x="400" y="34" text-anchor="middle" fill="#e6edf3" font-size="14" font-weight="600">Token savings by feature</text>
+  <text x="400" y="52" text-anchor="middle" fill="#8b949e" font-size="10">vs. vanilla Claude Code session — lower is better</text>
+
+  <!-- Y axis label -->
+  <text x="22" y="180" text-anchor="middle" fill="#8b949e" font-size="9" transform="rotate(-90,22,180)">tokens consumed</text>
+
+  <!-- Grid lines -->
+  <line x1="80" y1="75" x2="760" y2="75" stroke="#21262d" stroke-width="1"/>
+  <line x1="80" y1="125" x2="760" y2="125" stroke="#21262d" stroke-width="1"/>
+  <line x1="80" y1="175" x2="760" y2="175" stroke="#21262d" stroke-width="1"/>
+  <line x1="80" y1="225" x2="760" y2="225" stroke="#21262d" stroke-width="1"/>
+  <line x1="80" y1="275" x2="760" y2="275" stroke="#21262d" stroke-width="1"/>
+
+  <!-- Y axis labels -->
+  <text x="72" y="79" text-anchor="end" fill="#6e7681" font-size="9">15k</text>
+  <text x="72" y="129" text-anchor="end" fill="#6e7681" font-size="9">10k</text>
+  <text x="72" y="179" text-anchor="end" fill="#6e7681" font-size="9">5k</text>
+  <text x="72" y="229" text-anchor="end" fill="#6e7681" font-size="9">2k</text>
+  <text x="72" y="279" text-anchor="end" fill="#6e7681" font-size="9">0</text>
+
+  <!-- Base X axis -->
+  <line x1="80" y1="275" x2="760" y2="275" stroke="#30363d" stroke-width="1.5"/>
+
+  <!-- ── FEATURE 1: Project memory ── -->
+  <!-- Before: ~12,000 tokens (read files to understand project) -->
+  <rect x="110" y="75" width="50" height="200" fill="#f85149" rx="4" opacity="0.85"/>
+  <text x="135" y="70" text-anchor="middle" fill="#f85149" font-size="9" font-weight="700">12,000</text>
+  <!-- After: ~300 tokens (read context note) -->
+  <rect x="165" y="270" width="50" height="5" fill="#3fb950" rx="2" opacity="0.85"/>
+  <text x="190" y="265" text-anchor="middle" fill="#3fb950" font-size="9" font-weight="700">300</text>
+  <!-- Label -->
+  <text x="162" y="305" text-anchor="middle" fill="#e6edf3" font-size="9" font-weight="600">Project</text>
+  <text x="162" y="317" text-anchor="middle" fill="#8b949e" font-size="8">Memory</text>
+  <text x="162" y="333" text-anchor="middle" fill="#56d364" font-size="9" font-weight="700">98% ↓</text>
+
+  <!-- ── FEATURE 2: Code search ── -->
+  <!-- Before: ~4,500 tokens (grep + read 3 files) -->
+  <rect x="240" y="143" width="50" height="132" fill="#f85149" rx="4" opacity="0.85"/>
+  <text x="265" y="138" text-anchor="middle" fill="#f85149" font-size="9" font-weight="700">4,500</text>
+  <!-- After: ~200 tokens (search_code × 3) -->
+  <rect x="295" y="265" width="50" height="10" fill="#3fb950" rx="2" opacity="0.85"/>
+  <text x="320" y="260" text-anchor="middle" fill="#3fb950" font-size="9" font-weight="700">200</text>
+  <!-- Label -->
+  <text x="292" y="305" text-anchor="middle" fill="#e6edf3" font-size="9" font-weight="600">Code</text>
+  <text x="292" y="317" text-anchor="middle" fill="#8b949e" font-size="8">Search</text>
+  <text x="292" y="333" text-anchor="middle" fill="#56d364" font-size="9" font-weight="700">96% ↓</text>
+
+  <!-- ── FEATURE 3: SmartCrusher ── -->
+  <!-- Before: ~2,000 tokens (raw JSON) -->
+  <rect x="370" y="188" width="50" height="87" fill="#f85149" rx="4" opacity="0.85"/>
+  <text x="395" y="183" text-anchor="middle" fill="#f85149" font-size="9" font-weight="700">2,000</text>
+  <!-- After: ~700 tokens -->
+  <rect x="425" y="246" width="50" height="29" fill="#3fb950" rx="2" opacity="0.85"/>
+  <text x="450" y="241" text-anchor="middle" fill="#3fb950" font-size="9" font-weight="700">700</text>
+  <!-- Label -->
+  <text x="422" y="305" text-anchor="middle" fill="#e6edf3" font-size="9" font-weight="600">Smart</text>
+  <text x="422" y="317" text-anchor="middle" fill="#8b949e" font-size="8">Crusher</text>
+  <text x="422" y="333" text-anchor="middle" fill="#56d364" font-size="9" font-weight="700">65% ↓</text>
+
+  <!-- ── FEATURE 4: CacheAligner ── -->
+  <!-- Before: ~3,000 tokens (repeated context calls) -->
+  <rect x="500" y="168" width="50" height="107" fill="#f85149" rx="4" opacity="0.85"/>
+  <text x="525" y="163" text-anchor="middle" fill="#f85149" font-size="9" font-weight="700">3,000</text>
+  <!-- After: ~0 tokens (cache hit) -->
+  <rect x="555" y="273" width="50" height="2" fill="#3fb950" rx="1" opacity="0.85"/>
+  <text x="580" y="268" text-anchor="middle" fill="#3fb950" font-size="9" font-weight="700">0</text>
+  <!-- Label -->
+  <text x="552" y="305" text-anchor="middle" fill="#e6edf3" font-size="9" font-weight="600">Cache</text>
+  <text x="552" y="317" text-anchor="middle" fill="#8b949e" font-size="8">Aligner</text>
+  <text x="552" y="333" text-anchor="middle" fill="#56d364" font-size="9" font-weight="700">100% ↓</text>
+
+  <!-- ── FEATURE 5: CCR ── -->
+  <!-- Before: ~3,500 tokens (full note/response) -->
+  <rect x="630" y="148" width="50" height="127" fill="#f85149" rx="4" opacity="0.85"/>
+  <text x="655" y="143" text-anchor="middle" fill="#f85149" font-size="9" font-weight="700">3,500</text>
+  <!-- After: ~1,000 tokens (inline + CCR marker) -->
+  <rect x="685" y="245" width="50" height="30" fill="#3fb950" rx="2" opacity="0.85"/>
+  <text x="710" y="240" text-anchor="middle" fill="#3fb950" font-size="9" font-weight="700">1,050</text>
+  <!-- Label -->
+  <text x="682" y="305" text-anchor="middle" fill="#e6edf3" font-size="9" font-weight="600">CCR</text>
+  <text x="682" y="317" text-anchor="middle" fill="#8b949e" font-size="8">Offload</text>
+  <text x="682" y="333" text-anchor="middle" fill="#56d364" font-size="9" font-weight="700">70% ↓</text>
+
+  <!-- Legend -->
+  <rect x="530" y="56" width="12" height="12" fill="#f85149" rx="2"/>
+  <text x="548" y="67" fill="#8b949e" font-size="9">Without ContextVault</text>
+  <rect x="660" y="56" width="12" height="12" fill="#3fb950" rx="2"/>
+  <text x="678" y="67" fill="#8b949e" font-size="9">With ContextVault</text>
+</svg>
