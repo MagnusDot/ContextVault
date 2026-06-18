@@ -8,7 +8,7 @@
   <text x="400" y="36" text-anchor="middle" fill="#e6edf3" font-size="15" font-weight="600">Token consumption per session — same project, same task</text>
 
   <!-- === WITHOUT === -->
-  <text x="200" y="72" text-anchor="middle" fill="#f85149" font-size="12" font-weight="600" letter-spacing="1">WITHOUT CLAUDEVAULT</text>
+  <text x="200" y="72" text-anchor="middle" fill="#f85149" font-size="12" font-weight="600" letter-spacing="1">WITHOUT CONTEXTVAULT</text>
 
   <!-- Bars without -->
   <!-- Understand project: 7500 tokens -->
@@ -45,7 +45,7 @@
   <line x1="400" y1="60" x2="400" y2="300" stroke="#21262d" stroke-width="1.5" stroke-dasharray="4,3"/>
 
   <!-- === WITH === -->
-  <text x="600" y="72" text-anchor="middle" fill="#3fb950" font-size="12" font-weight="600" letter-spacing="1">WITH CLAUDEVAULT</text>
+  <text x="600" y="72" text-anchor="middle" fill="#3fb950" font-size="12" font-weight="600" letter-spacing="1">WITH CONTEXTVAULT</text>
 
   <!-- Bars with -->
   <!-- get_project_context: 300 tokens -->
