@@ -13,7 +13,6 @@ final class CCRStore {
 
     private init() {}
 
-    // Store content and return its 12-char hash key.
     func put(_ content: String) -> String {
         let hash = sha12(content)
         lock.withLock { store[hash] = content }

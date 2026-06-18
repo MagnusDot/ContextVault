@@ -19,7 +19,6 @@ struct RAGVisualizerView: View {
     @State private var browsedChunks: [CodeChunk] = []
     @State private var groupedChunks: [CodeChunk.ChunkType: [CodeChunk]] = [:]
 
-    // Footer stats — precomputed alongside browsedChunks
     @State private var browseTypeCounts: [CodeChunk.ChunkType: Int] = [:]
     @State private var avgLineCount = 0
 
@@ -99,7 +98,6 @@ struct RAGVisualizerView: View {
         browsedChunks = filtered
         groupedChunks = Dictionary(grouping: filtered, by: \.type)
 
-        // Precompute footer stats
         browseTypeCounts = [:]
         for c in filtered { browseTypeCounts[c.type, default: 0] += 1 }
         avgLineCount = filtered.isEmpty ? 0 : filtered.reduce(0) { $0 + $1.lineCount } / filtered.count

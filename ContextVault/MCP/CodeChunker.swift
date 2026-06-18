@@ -1,7 +1,5 @@
 import Foundation
 
-// Parses source files into function/class/struct-level chunks for RAG indexing.
-// Uses brace counting for C-like languages, indentation for Python.
 enum CodeChunker {
 
     static let maxChunkLines = 200
@@ -12,7 +10,6 @@ enum CodeChunker {
         let fileCount: Int
     }
 
-    // Scan a project directory and return all code chunks.
     static func chunkProject(
         at root: String,
         extensions: [String] = ["swift","ts","tsx","js","jsx","py","go","rs","kt"],
@@ -45,7 +42,6 @@ enum CodeChunker {
         return .init(chunks: allChunks, fileCount: files.count)
     }
 
-    // Parse a single file into chunks.
     static func chunkFile(at path: String, relativePath: String) -> [CodeChunk] {
         guard let content = try? String(contentsOfFile: path, encoding: .utf8) else { return [] }
         let ext = URL(fileURLWithPath: path).pathExtension.lowercased()
@@ -65,7 +61,6 @@ enum CodeChunker {
     private enum Lang {
         case swift, typescript, go, rust
 
-        // (regex pattern, chunk type) pairs
         var specs: [(String, CodeChunk.ChunkType)] {
             switch self {
             case .swift:

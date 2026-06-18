@@ -97,7 +97,6 @@ struct DiagnosticsView: View {
             HStack(spacing: 12) {
                 Button("Restart MCP Server") {
                     Task {
-                        // force restart
                         isRefreshing = true
                         await refresh()
                         isRefreshing = false
@@ -126,7 +125,6 @@ struct DiagnosticsView: View {
         isRefreshing = true
         var result: [DiagCheck] = []
 
-        // Lock file
         let lockURL = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent(".config/claude/ide/contextvault.lock")
         let lockExists = FileManager.default.fileExists(atPath: lockURL.path)
@@ -137,7 +135,6 @@ struct DiagnosticsView: View {
             value: lockExists ? "Present" : "Missing — auto-discovery won't work"
         ))
 
-        // Lock file contents
         if lockExists, let data = try? Data(contentsOf: lockURL),
            let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
            let pid = json["pid"] as? Int {
@@ -149,7 +146,6 @@ struct DiagnosticsView: View {
             ))
         }
 
-        // .claude.json registration
         let claudeJSON = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".claude.json")
         var claudeRegistered = false
         if let data = try? Data(contentsOf: claudeJSON),
@@ -164,7 +160,6 @@ struct DiagnosticsView: View {
             value: claudeRegistered ? "Registered" : "Missing — Claude Code won't find the server"
         ))
 
-        // Write permission check
         let testURL = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent(".config/claude/ide/.cv_write_test")
         let canWrite = (try? "ok".write(to: testURL, atomically: true, encoding: .utf8)) != nil

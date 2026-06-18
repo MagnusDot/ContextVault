@@ -1,7 +1,5 @@
 import Foundation
 
-// Writes/removes the contextvault entry in ~/.claude.json so Claude Code discovers
-// the MCP server automatically without needing `claude mcp add`.
 enum ClaudeCodeRegistration {
     private static var configURL: URL {
         FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".claude.json")

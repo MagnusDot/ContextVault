@@ -1,20 +1,12 @@
 import Foundation
 
-// ContentRouter + compression pipeline, inspired by headroom's architecture.
-// Detects content type and applies the cheapest lossless (or near-lossless)
-// compression. For content over the CCR threshold, offloads the tail to
-// CCRStore and returns a retrieval marker.
 enum ResponseCompressor {
 
-    // Lines above this threshold trigger CCR offloading.
     static let ccrLineThreshold = 80
-    // Lines shown inline when CCR kicks in.
     static let ccrInlineLines = 40
 
     // MARK: - Public entry point
 
-    // Compress any MCP text response.
-    // Returns the compressed string (may contain a <<ccr:…>> marker).
     static func compress(_ text: String) -> String {
         let type_ = detect(text)
         switch type_ {
@@ -25,7 +17,6 @@ enum ResponseCompressor {
         }
     }
 
-    // Compress a note body, applying CCR if it's too large.
     static func compressNote(_ body: String, title: String) -> String {
         let normalized = normalizeMarkdown(body)
         let lines = normalized.components(separatedBy: "\n")
@@ -34,7 +25,6 @@ enum ResponseCompressor {
             return normalized
         }
 
-        // Offload tail to CCR
         let inline = lines.prefix(ccrInlineLines).joined(separator: "\n")
         let offloaded = lines.dropFirst(ccrInlineLines).joined(separator: "\n")
         let hash = CCRStore.shared.put(offloaded)
@@ -65,10 +55,8 @@ enum ResponseCompressor {
               let obj = try? JSONSerialization.jsonObject(with: data)
         else { return text }
 
-        // SmartCrusher: arrays of objects → columnar table (40–70% savings)
         if let crushed = SmartCrusher.crush(obj) { return crushed }
 
-        // Fallback: lossless minification (removes whitespace)
         guard let minified = try? JSONSerialization.data(withJSONObject: obj),
               let result = String(data: minified, encoding: .utf8),
               result.count < text.count
@@ -129,7 +117,6 @@ enum ResponseCompressor {
         let lines = normalized.components(separatedBy: "\n")
         guard lines.count > ccrLineThreshold else { return normalized }
 
-        // CCR for large markdown blobs
         let inline = lines.prefix(ccrInlineLines).joined(separator: "\n")
         let offloaded = lines.dropFirst(ccrInlineLines).joined(separator: "\n")
         let hash = CCRStore.shared.put(offloaded)
@@ -138,8 +125,6 @@ enum ResponseCompressor {
         return inline + "\n<<ccr:\(hash) \(dropped)_lines_available — retrieve(hash:\"\(hash)\")>>"
     }
 
-    // Core normalization: collapse blank lines, strip trailing spaces,
-    // deduplicate identical consecutive lines.
     static func normalizeMarkdown(_ text: String) -> String {
         var result: [String] = []
         var blankRun = 0
@@ -161,7 +146,6 @@ enum ResponseCompressor {
             prev = trimmed.isEmpty ? prev : trimmed
         }
 
-        // Trim leading/trailing blank lines
         while result.first == "" { result.removeFirst() }
         while result.last == "" { result.removeLast() }
 

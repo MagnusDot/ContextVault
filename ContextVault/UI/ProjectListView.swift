@@ -9,7 +9,6 @@ struct ProjectListView: View {
 
     var body: some View {
         List {
-            // Home
             Button {
                 selectedProject = nil
             } label: {

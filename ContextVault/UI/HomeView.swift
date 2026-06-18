@@ -136,7 +136,6 @@ struct HomeView: View {
     private func promptBlock(for project: Project) -> some View {
         let prompt = buildPrompt(for: project)
         return VStack(alignment: .leading, spacing: 0) {
-            // Header bar
             HStack {
                 Text("startup-prompt.md")
                     .font(.caption.monospaced())
@@ -158,7 +157,6 @@ struct HomeView: View {
             .padding(.vertical, 8)
             .background(Color.primary.opacity(0.05))
 
-            // Prompt content
             ScrollView(.vertical) {
                 Text(prompt)
                     .font(.system(.caption, design: .monospaced))

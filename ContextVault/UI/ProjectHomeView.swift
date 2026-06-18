@@ -17,7 +17,6 @@ struct ProjectHomeView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Tab bar
 
             HStack(spacing: 0) {
                 ForEach(Tab.allCases, id: \.self) { tab in
@@ -50,7 +49,6 @@ struct ProjectHomeView: View {
             .background(.background.secondary)
             Divider()
 
-            // Content
             switch selectedTab {
             case .overview:
                 ScrollView {
@@ -220,7 +218,6 @@ struct ProjectHomeView: View {
                 .font(.headline)
 
             HStack(alignment: .top, spacing: 0) {
-                // Left column: pipeline steps
                 VStack(alignment: .leading, spacing: 0) {
                     ragStep(
                         icon: "doc.text.fill",
@@ -262,7 +259,6 @@ struct ProjectHomeView: View {
 
                 Spacer()
 
-                // Right column: savings callout
                 if indexState.isIndexed {
                     savingsCallout
                         .padding(.leading, 16)
@@ -302,7 +298,6 @@ struct ProjectHomeView: View {
 
     private var savingsCounter: some View {
         HStack(spacing: 16) {
-            // Big number
             VStack(alignment: .leading, spacing: 2) {
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Text(formatTokens(savings.totalSaved))
@@ -321,7 +316,6 @@ struct ProjectHomeView: View {
 
             Divider().frame(height: 40)
 
-            // Call count
             VStack(alignment: .leading, spacing: 2) {
                 Text("\(savings.callCount)")
                     .font(.system(size: 20, weight: .semibold, design: .rounded))
@@ -334,7 +328,6 @@ struct ProjectHomeView: View {
 
             Divider().frame(height: 40)
 
-            // Tangible metric: sessions worth of context
             let sessions = max(1, savings.totalSaved / 180_000)
             VStack(alignment: .leading, spacing: 2) {
                 Text("≈ \(sessions)×")

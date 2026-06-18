@@ -25,24 +25,24 @@
 
 /* Begin PBXFileReference section */
 		A16E6A942FDC24C300D867E8 /* ContextVault.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ContextVault.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		A16E6AA32FDC24C400D867E8 /* ClaudeVaultTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClaudeVaultTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		A16E6AAD2FDC24C400D867E8 /* ClaudeVaultUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClaudeVaultUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A16E6AA32FDC24C400D867E8 /* ContextVaultTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ContextVaultTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A16E6AAD2FDC24C400D867E8 /* ContextVaultUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ContextVaultUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		A16E6A962FDC24C300D867E8 /* ClaudeVault */ = {
+		A16E6A962FDC24C300D867E8 /* ContextVault */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = ContextVault;
 			sourceTree = "<group>";
 		};
-		A16E6AA62FDC24C400D867E8 /* ClaudeVaultTests */ = {
+		A16E6AA62FDC24C400D867E8 /* ContextVaultTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ClaudeVaultTests;
+			path = ContextVaultTests;
 			sourceTree = "<group>";
 		};
-		A16E6AB02FDC24C400D867E8 /* ClaudeVaultUITests */ = {
+		A16E6AB02FDC24C400D867E8 /* ContextVaultUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ClaudeVaultUITests;
+			path = ContextVaultUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -75,9 +75,9 @@
 		A16E6A8B2FDC24C300D867E8 = {
 			isa = PBXGroup;
 			children = (
-				A16E6A962FDC24C300D867E8 /* ClaudeVault */,
-				A16E6AA62FDC24C400D867E8 /* ClaudeVaultTests */,
-				A16E6AB02FDC24C400D867E8 /* ClaudeVaultUITests */,
+				A16E6A962FDC24C300D867E8 /* ContextVault */,
+				A16E6AA62FDC24C400D867E8 /* ContextVaultTests */,
+				A16E6AB02FDC24C400D867E8 /* ContextVaultUITests */,
 				A16E6A952FDC24C300D867E8 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -86,8 +86,8 @@
 			isa = PBXGroup;
 			children = (
 				A16E6A942FDC24C300D867E8 /* ContextVault.app */,
-				A16E6AA32FDC24C400D867E8 /* ClaudeVaultTests.xctest */,
-				A16E6AAD2FDC24C400D867E8 /* ClaudeVaultUITests.xctest */,
+				A16E6AA32FDC24C400D867E8 /* ContextVaultTests.xctest */,
+				A16E6AAD2FDC24C400D867E8 /* ContextVaultUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -95,7 +95,7 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		A16E6A932FDC24C300D867E8 /* ClaudeVault */ = {
+		A16E6A932FDC24C300D867E8 /* ContextVault */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = A16E6AB72FDC24C400D867E8 /* Build configuration list for PBXNativeTarget "ContextVault" */;
 			buildPhases = (
@@ -108,7 +108,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				A16E6A962FDC24C300D867E8 /* ClaudeVault */,
+				A16E6A962FDC24C300D867E8 /* ContextVault */,
 			);
 			name = ContextVault;
 			packageProductDependencies = (
@@ -117,9 +117,9 @@
 			productReference = A16E6A942FDC24C300D867E8 /* ContextVault.app */;
 			productType = "com.apple.product-type.application";
 		};
-		A16E6AA22FDC24C400D867E8 /* ClaudeVaultTests */ = {
+		A16E6AA22FDC24C400D867E8 /* ContextVaultTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A16E6ABA2FDC24C400D867E8 /* Build configuration list for PBXNativeTarget "ClaudeVaultTests" */;
+			buildConfigurationList = A16E6ABA2FDC24C400D867E8 /* Build configuration list for PBXNativeTarget "ContextVaultTests" */;
 			buildPhases = (
 				A16E6A9F2FDC24C400D867E8 /* Sources */,
 				A16E6AA02FDC24C400D867E8 /* Frameworks */,
@@ -131,18 +131,18 @@
 				A16E6AA52FDC24C400D867E8 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				A16E6AA62FDC24C400D867E8 /* ClaudeVaultTests */,
+				A16E6AA62FDC24C400D867E8 /* ContextVaultTests */,
 			);
-			name = ClaudeVaultTests;
+			name = ContextVaultTests;
 			packageProductDependencies = (
 			);
-			productName = ClaudeVaultTests;
-			productReference = A16E6AA32FDC24C400D867E8 /* ClaudeVaultTests.xctest */;
+			productName = ContextVaultTests;
+			productReference = A16E6AA32FDC24C400D867E8 /* ContextVaultTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		A16E6AAC2FDC24C400D867E8 /* ClaudeVaultUITests */ = {
+		A16E6AAC2FDC24C400D867E8 /* ContextVaultUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A16E6ABD2FDC24C400D867E8 /* Build configuration list for PBXNativeTarget "ClaudeVaultUITests" */;
+			buildConfigurationList = A16E6ABD2FDC24C400D867E8 /* Build configuration list for PBXNativeTarget "ContextVaultUITests" */;
 			buildPhases = (
 				A16E6AA92FDC24C400D867E8 /* Sources */,
 				A16E6AAA2FDC24C400D867E8 /* Frameworks */,
@@ -154,13 +154,13 @@
 				A16E6AAF2FDC24C400D867E8 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				A16E6AB02FDC24C400D867E8 /* ClaudeVaultUITests */,
+				A16E6AB02FDC24C400D867E8 /* ContextVaultUITests */,
 			);
-			name = ClaudeVaultUITests;
+			name = ContextVaultUITests;
 			packageProductDependencies = (
 			);
-			productName = ClaudeVaultUITests;
-			productReference = A16E6AAD2FDC24C400D867E8 /* ClaudeVaultUITests.xctest */;
+			productName = ContextVaultUITests;
+			productReference = A16E6AAD2FDC24C400D867E8 /* ContextVaultUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -200,9 +200,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				A16E6A932FDC24C300D867E8 /* ClaudeVault */,
-				A16E6AA22FDC24C400D867E8 /* ClaudeVaultTests */,
-				A16E6AAC2FDC24C400D867E8 /* ClaudeVaultUITests */,
+				A16E6A932FDC24C300D867E8 /* ContextVault */,
+				A16E6AA22FDC24C400D867E8 /* ContextVaultTests */,
+				A16E6AAC2FDC24C400D867E8 /* ContextVaultUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -258,12 +258,12 @@
 /* Begin PBXTargetDependency section */
 		A16E6AA52FDC24C400D867E8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = A16E6A932FDC24C300D867E8 /* ClaudeVault */;
+			target = A16E6A932FDC24C300D867E8 /* ContextVault */;
 			targetProxy = A16E6AA42FDC24C400D867E8 /* PBXContainerItemProxy */;
 		};
 		A16E6AAF2FDC24C400D867E8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = A16E6A932FDC24C300D867E8 /* ClaudeVault */;
+			target = A16E6A932FDC24C300D867E8 /* ContextVault */;
 			targetProxy = A16E6AAE2FDC24C400D867E8 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -470,7 +470,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ContextVault.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ClaudeVault";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ContextVault.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ContextVault";
 			};
 			name = Debug;
 		};
@@ -491,7 +491,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ContextVault.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ClaudeVault";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ContextVault.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ContextVault";
 			};
 			name = Release;
 		};
@@ -554,7 +554,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A16E6ABA2FDC24C400D867E8 /* Build configuration list for PBXNativeTarget "ClaudeVaultTests" */ = {
+		A16E6ABA2FDC24C400D867E8 /* Build configuration list for PBXNativeTarget "ContextVaultTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A16E6ABB2FDC24C400D867E8 /* Debug */,
@@ -563,7 +563,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A16E6ABD2FDC24C400D867E8 /* Build configuration list for PBXNativeTarget "ClaudeVaultUITests" */ = {
+		A16E6ABD2FDC24C400D867E8 /* Build configuration list for PBXNativeTarget "ContextVaultUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A16E6ABE2FDC24C400D867E8 /* Debug */,

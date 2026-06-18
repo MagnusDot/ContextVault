@@ -14,7 +14,6 @@ final class TokenSavingsStore {
 
     private init() {}
 
-    // Called from MCPTools on every search_code call.
     func record(slug: String, savedTokens: Int) {
         lock.lock()
         var s = cache[slug] ?? load(slug: slug)

@@ -1,16 +1,9 @@
 import Foundation
 
-// Headroom SmartCrusher port (Swift).
-// Converts JSON arrays-of-objects into a compact columnar table,
-// and large single objects into key:value lines.
-// Saves 40–70% tokens on structured tool outputs.
 enum SmartCrusher {
 
-    // Max rows shown inline; remainder offloaded to CCR.
     static let inlineRowLimit = 8
 
-    // Try to crush a parsed JSON value.
-    // Returns nil if the shape isn't suitable (caller falls back to minification).
     static func crush(_ value: Any) -> String? {
         if let arr = value as? [[String: Any]], arr.count >= 2 {
             return crushArray(arr)
@@ -24,7 +17,6 @@ enum SmartCrusher {
     // MARK: - Array of homogeneous objects → columnar table
 
     private static func crushArray(_ arr: [[String: Any]]) -> String {
-        // Collect column names in first-seen order (stable across rows)
         var cols = [String]()
         var colSet = Set<String>()
         for row in arr {

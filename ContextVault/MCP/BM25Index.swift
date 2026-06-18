@@ -75,7 +75,6 @@ struct BM25Index {
     var count: Int { chunks.count }
     var allChunks: [CodeChunk] { chunks }
 
-    // Returns the most architecturally significant chunks.
     // Score = typeWeight × log(lineCount + 1) — large structs/classes rank above tiny helpers.
     func topChunks(limit: Int) -> [CodeChunk] {
         let w: [CodeChunk.ChunkType: Double] = [
@@ -93,7 +92,6 @@ struct BM25Index {
 
     // Splits on non-alnum boundaries + expands camelCase/snake_case.
     static func tokenize(_ text: String) -> [String] {
-        // 1. Split on non-identifier characters
         let raw = text.components(separatedBy: CharacterSet.alphanumerics.inverted)
             .flatMap { expandCamel($0) }
             .map { $0.lowercased() }

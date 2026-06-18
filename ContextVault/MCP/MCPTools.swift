@@ -57,7 +57,6 @@ final class MCPTools {
 
         let notes = vault.notes(for: project)
 
-        // CacheAligner: if notes unchanged, return byte-identical output for Anthropic KV cache hit
         let contentHash = CacheAligner.shared.hash(for: notes)
         let cacheKey = "ctx:\(project.slug)"
         if let cached = CacheAligner.shared.get(key: cacheKey, contentHash: contentHash) {
@@ -66,7 +65,6 @@ final class MCPTools {
 
         let fmt = compactDateFmt
 
-        // Note index: tag→notes, compact format
         var byTag: [String: [Note]] = [:]
         var untagged: [Note] = []
         for note in notes {
@@ -82,7 +80,6 @@ final class MCPTools {
             idxLines.append("[·] " + untagged.map(\.title).joined(separator: " "))
         }
 
-        // Hot cache: context note compressed
         let ctxBody: String
         if let ctx = vault.readNote(titled: "context", in: project) ?? vault.readNote(titled: "Context", in: project) {
             ctxBody = ctx.body.isEmpty ? "(empty)" : ResponseCompressor.compressNote(ctx.body, title: "context")
@@ -216,14 +213,12 @@ final class MCPTools {
         let indexes = CodeIndexer.index(at: scanPath, extensions: exts, maxDepth: maxDepth)
         let raw = CodeIndexer.format(indexes, rootPath: scanPath)
 
-        // CacheAligner: stable output for repeated calls on unchanged codebase
         let hash = CacheAligner.shared.hash(for: raw)
         let cacheKey = "idx:\(project.slug):\(scanPath)"
         if let cached = CacheAligner.shared.get(key: cacheKey, contentHash: hash) {
             return .ok(cached)
         }
 
-        // CCR for very large codebases (>120 lines)
         let lines = raw.components(separatedBy: "\n")
         let output: String
         if lines.count > 120 {
@@ -241,8 +236,6 @@ final class MCPTools {
 
     // MARK: - compress (universal proxy compressor)
     // Headroom "proxy pattern": Claude passes any tool output here for compression.
-    // Works on JSON (SmartCrusher), logs, markdown, or raw text.
-    // Returns compressed content + CCR hash when content is large.
 
     private func compressContent(_ args: [String: Any]) -> MCPToolResult {
         guard let content = args["content"] as? String, !content.isEmpty else {
@@ -253,7 +246,6 @@ final class MCPTools {
         let origLen = content.count
         let origTokens = origLen / 4
 
-        // Route to compressor
         let type_: ResponseCompressor.ContentType
         if let hint = typeHint {
             switch hint {
@@ -285,8 +277,6 @@ final class MCPTools {
     }
 
     // MARK: - search_code (RAG)
-    // BM25 keyword search over indexed function/class/struct bodies.
-    // Much cheaper than grep+read: returns matching code directly.
 
     private func searchCode(_ args: [String: Any]) -> MCPToolResult {
         guard let slug = args["project"] as? String,
@@ -326,7 +316,6 @@ final class MCPTools {
             return "\(header)\n\(body)"
         }.joined(separator: "\n\n---\n\n")
 
-        // Track cumulative token savings:
         // Cost of reading each unique file in full vs what we actually returned.
         // avgFileTokens: based on real chunk data from the index (chars/4, adjusted for file coverage).
         let searchTokens = results.reduce(0) { $0 + $1.chunk.body.count / 4 }
@@ -345,8 +334,6 @@ final class MCPTools {
     }
 
     // MARK: - read_chunk
-    // Read a specific code chunk by file + start line.
-    // Use after search_code to get a chunk you identified.
 
     private func readChunk(_ args: [String: Any]) -> MCPToolResult {
         guard let slug = args["project"] as? String,

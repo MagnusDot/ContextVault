@@ -90,7 +90,6 @@ struct MainWindowView: View {
         }
         .task {
             mcp.start(vault: vault)
-            // Load persisted code indexes in background
             for project in vault.projects {
                 rag.loadIfNeeded(project: project)
             }

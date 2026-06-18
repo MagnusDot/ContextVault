@@ -1,7 +1,6 @@
 import SwiftUI
 import WebKit
 
-// WKWebView-based Markdown preview — full block + inline rendering, dark-mode aware.
 struct MarkdownPreviewView: NSViewRepresentable {
     let markdown: String
 
@@ -78,7 +77,6 @@ private func parseBlocks(_ md: String) -> String {
     while i < lines.count {
         let line = lines[i]
 
-        // Fenced code block
         let fencePrefix = line.hasPrefix("```") ? "```" : (line.hasPrefix("~~~") ? "~~~" : nil)
         if let fence = fencePrefix {
             let lang = String(line.dropFirst(3)).trimmingCharacters(in: .whitespaces)
@@ -94,7 +92,6 @@ private func parseBlocks(_ md: String) -> String {
             continue
         }
 
-        // ATX heading
         if line.hasPrefix("#") {
             var lvl = 0
             for ch in line { if ch == "#" { lvl += 1 } else { break } }
@@ -107,13 +104,11 @@ private func parseBlocks(_ md: String) -> String {
             }
         }
 
-        // Horizontal rule
         let stripped = line.filter { !$0.isWhitespace }
         if (stripped == "---" || stripped == "***" || stripped == "___") && stripped.count >= 3 {
             out += "<hr>"; i += 1; continue
         }
 
-        // Blockquote
         if line.hasPrefix(">") {
             var bq: [String] = []
             while i < lines.count && lines[i].hasPrefix(">") {
@@ -125,7 +120,6 @@ private func parseBlocks(_ md: String) -> String {
             continue
         }
 
-        // Unordered list
         if isUL(line) {
             out += "<ul>"
             while i < lines.count && isUL(lines[i]) {
@@ -134,7 +128,6 @@ private func parseBlocks(_ md: String) -> String {
             out += "</ul>"; continue
         }
 
-        // Ordered list
         if isOL(line) {
             out += "<ol>"
             while i < lines.count && isOL(lines[i]) {
@@ -144,7 +137,6 @@ private func parseBlocks(_ md: String) -> String {
             out += "</ol>"; continue
         }
 
-        // GFM table (header row | separator row)
         if i + 1 < lines.count && line.contains("|") && isTableSeparator(lines[i + 1]) {
             var rows = [line]
             i += 2
@@ -154,10 +146,8 @@ private func parseBlocks(_ md: String) -> String {
             out += renderTable(rows); continue
         }
 
-        // Blank line
         if line.trimmingCharacters(in: .whitespaces).isEmpty { i += 1; continue }
 
-        // Paragraph
         var para: [String] = []
         while i < lines.count {
             let l = lines[i]
@@ -208,7 +198,6 @@ private func inline(_ text: String) -> String {
     var s = htmlEscape(text)
     var codes: [String] = []
 
-    // Extract inline code spans to protect content from other transforms
     if let re = try? NSRegularExpression(pattern: "`(.+?)`") {
         var out = ""
         var last = s.startIndex

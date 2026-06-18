@@ -1,18 +1,13 @@
 import Foundation
 import Observation
 
-// Coordinator for per-project code RAG.
-// @Observable for SwiftUI bindings (states, indexedAt).
-// Thread-safe search via NSLock — called from MCP background threads.
 @Observable
 final class CodeRAGManager {
 
     static let shared = CodeRAGManager()
 
-    // UI-facing state (always mutated on MainActor via Task)
     private(set) var states: [String: ProjectIndexState] = [:]
 
-    // In-memory search indexes (lock-protected for MCP thread access)
     nonisolated(unsafe) private var indexes: [String: BM25Index] = [:]
     private let indexLock = NSLock()
     private var activeTasks: [String: Task<Void, Never>] = [:]
@@ -42,7 +37,6 @@ final class CodeRAGManager {
 
             if Task.isCancelled { return }
 
-            // Build index
             let idx = BM25Index(chunks: result.chunks)
             indexLock.withLock { indexes[slug] = idx }
             states[slug] = .indexed(
@@ -51,7 +45,6 @@ final class CodeRAGManager {
                 indexedAt: Date()
             )
 
-            // Persist chunks to disk in background
             let chunks = result.chunks
             Task.detached(priority: .background) {
                 Self.persist(chunks: chunks, slug: slug)
@@ -67,7 +60,6 @@ final class CodeRAGManager {
         }
     }
 
-    // Load persisted index for a project (called at startup).
     func loadIfNeeded(project: Project) {
         guard states[project.slug] == nil else { return }
         states[project.slug] = .notIndexed

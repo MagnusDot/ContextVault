@@ -20,7 +20,6 @@ final class CacheAligner {
 
     private init() {}
 
-    // Returns cached output if the content hash matches and TTL hasn't expired.
     func get(key: String, contentHash: String) -> String? {
         lock.withLock {
             guard let e = cache[key],
@@ -45,7 +44,6 @@ final class CacheAligner {
         return sha12(combined)
     }
 
-    // Stable hash for arbitrary string content (used by `compress` tool).
     func hash(for content: String) -> String { sha12(content) }
 
     var size: Int { lock.withLock { cache.count } }

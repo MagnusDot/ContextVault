@@ -79,7 +79,6 @@ private struct ProjectIndexRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            // Project info
             VStack(alignment: .leading, spacing: 3) {
                 Text(project.name)
                     .font(.body)
@@ -93,7 +92,6 @@ private struct ProjectIndexRow: View {
 
             Spacer()
 
-            // Status + controls
             HStack(spacing: 8) {
                 statusPill
                 actionButton

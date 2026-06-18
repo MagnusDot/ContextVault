@@ -413,7 +413,6 @@ private struct ClaudeDesktopSetup: View {
 
         guard panel.runModal() == .OK, let dir = panel.url else { return }
 
-        // Avoid duplicates
         let configURL = dir.appendingPathComponent("claude_desktop_config.json")
         guard !instances.contains(where: { $0.configURL == configURL }) else { return }
 

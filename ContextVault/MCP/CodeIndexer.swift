@@ -1,6 +1,5 @@
 import Foundation
 
-// Scans source files and returns a compact symbol index.
 // Output format (one line per file):
 //   path/file.swift: C:MyClass@6 F:myFunc@21 S:MyStruct@40
 // Type prefixes: F=func/def M=method C=class S=struct E=enum P=protocol I=interface T=type X=extension
@@ -23,7 +22,6 @@ enum CodeIndexer {
         return results.sorted { $0.relativePath < $1.relativePath }
     }
 
-    // Compact single-string output, ~60 tokens for a 10-file project
     static func format(_ indexes: [FileIndex], rootPath: String) -> String {
         guard !indexes.isEmpty else { return "(no source files found)" }
         let total = indexes.reduce(0) { $0 + $1.symbols.count }
@@ -182,7 +180,6 @@ enum CodeIndexer {
                    match.numberOfRanges > 1,
                    let nameRange = Range(match.range(at: 1), in: line) {
                     let name = String(line[nameRange])
-                    // Skip very short or obviously local names
                     guard name.count >= 2, !name.hasPrefix("_") else { continue }
                     results.append((type, name, lineIdx + 1))
                     break
