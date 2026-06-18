@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scheme
+   LastUpgradeVersion = "2650"
+   version = "1.7">
+   <BuildAction
+      parallelizeBuildables = "YES"
+      buildImplicitDependencies = "YES"
+      buildArchitectures = "Automatic">
+      <BuildActionEntries>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "A16E6A932FDC24C300D867E8"
+               BuildableName = "ContextVault.app"
+               BlueprintName = "ContextVault"
+               ReferencedContainer = "container:ContextVault.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+      </BuildActionEntries>
+   </BuildAction>
+   <TestAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      shouldUseLaunchSchemeArgsEnv = "YES">
+      <TestPlans>
+         <TestPlanReference
+            reference = "container:ContextVault.xctestplan"
+            default = "YES">
+         </TestPlanReference>
+      </TestPlans>
+      <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "A16E6AA22FDC24C400D867E8"
+               BuildableName = "ContextVaultTests.xctest"
+               BlueprintName = "ContextVaultTests"
+               ReferencedContainer = "container:ContextVault.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "A16E6AAC2FDC24C400D867E8"
+               BuildableName = "ContextVaultUITests.xctest"
+               BlueprintName = "ContextVaultUITests"
+               ReferencedContainer = "container:ContextVault.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+      </Testables>
+   </TestAction>
+   <LaunchAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      launchStyle = "0"
+      useCustomWorkingDirectory = "NO"
+      ignoresPersistentStateOnLaunch = "NO"
+      debugDocumentVersioning = "YES"
+      debugServiceExtension = "internal"
+      allowLocationSimulation = "YES"
+      queueDebuggingEnableBacktraceRecording = "Yes">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "A16E6A932FDC24C300D867E8"
+            BuildableName = "ContextVault.app"
+            BlueprintName = "ContextVault"
+            ReferencedContainer = "container:ContextVault.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </LaunchAction>
+   <ProfileAction
+      buildConfiguration = "Release"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      savedToolIdentifier = ""
+      useCustomWorkingDirectory = "NO"
+      debugDocumentVersioning = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "A16E6A932FDC24C300D867E8"
+            BuildableName = "ContextVault.app"
+            BlueprintName = "ContextVault"
+            ReferencedContainer = "container:ContextVault.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </ProfileAction>
+   <AnalyzeAction
+      buildConfiguration = "Debug">
+   </AnalyzeAction>
+   <ArchiveAction
+      buildConfiguration = "Release"
+      revealArchiveInOrganizer = "YES">
+   </ArchiveAction>
+</Scheme>

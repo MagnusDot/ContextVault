@@ -24,6 +24,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		A163663F2FE3FFCB008157F3 /* ContextVault.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = ContextVault.xctestplan; sourceTree = "<group>"; };
 		A16E6A942FDC24C300D867E8 /* ContextVault.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ContextVault.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A16E6AA32FDC24C400D867E8 /* ContextVaultTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ContextVaultTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A16E6AAD2FDC24C400D867E8 /* ContextVaultUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ContextVaultUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -75,6 +76,7 @@
 		A16E6A8B2FDC24C300D867E8 = {
 			isa = PBXGroup;
 			children = (
+				A163663F2FE3FFCB008157F3 /* ContextVault.xctestplan */,
 				A16E6A962FDC24C300D867E8 /* ContextVault */,
 				A16E6AA62FDC24C400D867E8 /* ContextVaultTests */,
 				A16E6AB02FDC24C400D867E8 /* ContextVaultUITests */,
