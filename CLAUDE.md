@@ -1,11 +1,11 @@
-# ClaudeVault — Agent Brief
+# ContextVault — Agent Brief
 
 ## Concept
-App Mac native menubar (Swift/SwiftUI) servant de mémoire persistante par projet pour Claude Code.
-Expose un serveur MCP que Claude Code découvre via auto-discovery. Stockage : fichiers Markdown locaux.
+App Mac native menubar (Swift/SwiftUI) servant de mémoire persistante par projet pour les agents AI (Claude Code, Cursor, Codex, Windsurf…).
+Expose un serveur MCP que tout agent compatible MCP découvre via auto-discovery. Stockage : fichiers Markdown locaux.
 
-**Problème résolu** : Claude Code rescanne le codebase à chaque session → gaspillage de tokens.
-ClaudeVault donne à Claude une mémoire structurée par projet (architecture, décisions, contexte, TODO).
+**Problème résolu** : chaque agent AI rescanne le codebase à chaque session → gaspillage de tokens.
+ContextVault donne à l'agent une mémoire structurée par projet (architecture, décisions, contexte, TODO).
 
 ---
 
@@ -18,20 +18,20 @@ ClaudeVault donne à Claude une mémoire structurée par projet (architecture, d
 | `SWIFT_DEFAULT_ACTOR_ISOLATION` | `MainActor` | Tout le code est `@MainActor` par défaut |
 | `SWIFT_APPROACHABLE_CONCURRENCY` | YES | Concurrence structurée obligatoire |
 | `ENABLE_APP_SANDBOX` | YES → à désactiver | Voir contraintes sandbox ci-dessous |
-| Bundle ID | `Magnus.ClaudeVault` | — |
+| Bundle ID | `Magnus.ContextVault` | — |
 
-**`PBXFileSystemSynchronizedRootGroup`** : tout fichier `.swift` créé dans `ClaudeVault/` ou ses sous-dossiers est **automatiquement compilé** par Xcode. Pas besoin de toucher le `.pbxproj`.
+**`PBXFileSystemSynchronizedRootGroup`** : tout fichier `.swift` créé dans `ContextVault/` ou ses sous-dossiers est **automatiquement compilé** par Xcode. Pas besoin de toucher le `.pbxproj`.
 
-**Sandbox** : `ENABLE_APP_SANDBOX = YES` par défaut. Pour écrire dans `~/.claudevault/` et `~/.config/claude/ide/`, le sandbox doit être **désactivé** dans les build settings du target (`ENABLE_APP_SANDBOX = NO`). Acceptable pour un outil développeur distribué hors App Store.
+**Sandbox** : `ENABLE_APP_SANDBOX = YES` par défaut. Pour écrire dans `~/.contextvault/` et `~/.config/claude/ide/`, le sandbox doit être **désactivé** dans les build settings du target (`ENABLE_APP_SANDBOX = NO`). Acceptable pour un outil développeur distribué hors App Store.
 
 ---
 
 ## Structure de fichiers cible
 
 ```
-ClaudeVault/                          ← tout fichier .swift ici se compile automatiquement
+ContextVault/                          ← tout fichier .swift ici se compile automatiquement
 ├── App/
-│   └── ClaudeVaultApp.swift          ← @main, MenuBarExtra, Window
+│   └── ContextVaultApp.swift          ← @main, MenuBarExtra, Window
 ├── Models/
 │   ├── Project.swift                 ← struct Project : Identifiable, Codable
 │   └── Note.swift                    ← struct Note : Identifiable, Codable
@@ -41,7 +41,7 @@ ClaudeVault/                          ← tout fichier .swift ici se compile aut
 │   ├── MCPServer.swift               ← serveur WebSocket (Claude Code), port 9876
 │   ├── MCPHTTPServer.swift           ← serveur HTTP/SSE (Claude Desktop), port 9877
 │   ├── MCPTools.swift                ← implémentation des 5 outils MCP
-│   └── AutoDiscovery.swift           ← écrit/supprime ~/.config/claude/ide/claudevault.lock
+│   └── AutoDiscovery.swift           ← écrit/supprime ~/.config/claude/ide/contextvault.lock
 ├── UI/
 │   ├── MainWindowView.swift          ← NavigationSplitView 3 colonnes
 │   ├── ProjectListView.swift         ← liste projets + bouton ajout
@@ -53,13 +53,13 @@ ClaudeVault/                          ← tout fichier .swift ici se compile aut
     └── AppIcon.appiconset/
         └── icon_1024.png             ← source icône (à déposer, puis make icons)
 
-ClaudeVaultTests/
+ContextVaultTests/
 ├── VaultManagerTests.swift           ← tests CRUD notes (priorité haute)
 └── MCPToolsTests.swift               ← tests outils MCP
 
 À SUPPRIMER (boilerplate Xcode) :
-- ClaudeVault/Item.swift
-- ClaudeVault/ContentView.swift       ← remplacé par UI/MainWindowView.swift
+- ContextVault/Item.swift
+- ContextVault/ContentView.swift       ← remplacé par UI/MainWindowView.swift
 ```
 
 ---
@@ -67,7 +67,7 @@ ClaudeVaultTests/
 ## Stockage sur disque
 
 ```
-~/.claudevault/
+~/.contextvault/
 └── <project-slug>/
     ├── .project.json          ← { id, name, rootPath, createdAt }
     └── notes/
@@ -102,7 +102,7 @@ JSON-RPC 2.0 sur WebSocket. Auto-discovery via fichier lock.
 - `GET /sse` → stream SSE pour notifications serveur→client
 
 ### Auto-discovery
-Fichier `~/.config/claude/ide/claudevault.lock` :
+Fichier `~/.config/claude/ide/contextvault.lock` :
 ```json
 { "pid": 12345, "wsPort": 9876, "httpPort": 9877, "version": "1.0" }
 ```
@@ -127,15 +127,15 @@ Créé au démarrage, supprimé à l'arrêt (proprement, même sur crash via sig
 ### Entry point
 ```swift
 @main
-struct ClaudeVaultApp: App {
+struct ContextVaultApp: App {
     @State private var vault = VaultManager()
     @State private var mcpServer = MCPServer()
 
     var body: some Scene {
-        MenuBarExtra("ClaudeVault", systemImage: "brain") {
+        MenuBarExtra("ContextVault", systemImage: "brain") {
             MenuBarView()
         }
-        Window("ClaudeVault", id: "main") {
+        Window("ContextVault", id: "main") {
             MainWindowView()
         }
         .environment(vault)
@@ -204,7 +204,7 @@ Référence : Notes.app, Xcode, Mail, Finder. Pas d'UI custom — 100% composant
 **MenuBarExtra**
 - Style `.window` (popover natif, pas `.menu`)
 - Contenu : statut connexion avec `Label` + indicateur vert/orange/rouge (Circle SF Symbol)
-- Liste des projets récents avec `Divider()` + "Open ClaudeVault..." en bas
+- Liste des projets récents avec `Divider()` + "Open ContextVault..." en bas
 - Indicateur tokens économisés : `Text` avec `.monospacedDigit()`
 
 **Animations & transitions**
@@ -220,7 +220,7 @@ Référence : Notes.app, Xcode, Mail, Finder. Pas d'UI custom — 100% composant
 ### Hiérarchie visuelle cible
 ```
 ┌─────────────────────────────────────────────────────┐
-│ ⬡ ClaudeVault    [+ Note]  [⌘F]          [● Live]  │  ← toolbar unifiée
+│ ⬡ ContextVault    [+ Note]  [⌘F]          [● Live]  │  ← toolbar unifiée
 ├──────────┬────────────────┬────────────────────────┤
 │ PROJETS  │ Notes          │                        │
 │          │ ──────────     │  # Architecture        │
@@ -238,7 +238,7 @@ Référence : Notes.app, Xcode, Mail, Finder. Pas d'UI custom — 100% composant
 
 | Fichier | État |
 |---|---|
-| `ClaudeVaultApp.swift` | Boilerplate SwiftData → **à remplacer** |
+| `ContextVaultApp.swift` | Boilerplate SwiftData → **à remplacer** |
 | `ContentView.swift` | Boilerplate → **à supprimer** |
 | `Item.swift` | Boilerplate SwiftData → **à supprimer** |
 | `Makefile` | Configuré (`make build/dmg/icons/clean`) |
@@ -253,7 +253,7 @@ Référence : Notes.app, Xcode, Mail, Finder. Pas d'UI custom — 100% composant
 2. `Vault/VaultManager.swift` (CRUD + search + parse frontmatter)
 3. `MCP/MCPTools.swift` + `MCP/MCPServer.swift` (WebSocket)
 4. `MCP/AutoDiscovery.swift`
-5. `App/ClaudeVaultApp.swift` (MenuBarExtra + Window)
+5. `App/ContextVaultApp.swift` (MenuBarExtra + Window)
 6. `UI/MenuBarView.swift`
 7. `UI/MainWindowView.swift` + sous-vues
 8. `MCP/MCPHTTPServer.swift` (Claude Desktop)
@@ -276,6 +276,6 @@ Référence : Notes.app, Xcode, Mail, Finder. Pas d'UI custom — 100% composant
 ```bash
 make build    # Release via xcodebuild
 make dmg      # DMG dans dist/ (create-dmg installé ✓)
-make icons    # Génère icônes depuis ClaudeVault/Assets.xcassets/AppIcon.appiconset/icon_1024.png
+make icons    # Génère icônes depuis ContextVault/Assets.xcassets/AppIcon.appiconset/icon_1024.png
 make clean    # Supprime .build/
 ```
