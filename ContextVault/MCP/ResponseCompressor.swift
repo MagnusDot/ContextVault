@@ -38,13 +38,14 @@ enum ResponseCompressor {
 
     // MARK: - Content detection (ContentRouter equivalent)
 
-    enum ContentType { case json, log, code, markdown }
+    enum ContentType: Equatable, Sendable { case json, log, code, markdown }
 
     static func detect(_ text: String) -> ContentType {
         let t = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Logs first — log lines often start with "[timestamp]" which fools the JSON prefix check
+        if logScore(t) > 3 { return .log }
         if t.hasPrefix("{") || t.hasPrefix("[") { return .json }
         if t.hasPrefix("idx:") || t.contains(": F:") || t.contains(": C:") { return .code }
-        if logScore(t) > 3 { return .log }
         return .markdown
     }
 

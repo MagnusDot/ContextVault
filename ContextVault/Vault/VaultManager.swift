@@ -3,33 +3,43 @@ import Observation
 
 @Observable
 final class VaultManager {
-    static let vaultRoot = FileManager.default.homeDirectoryForCurrentUser
+    static let defaultRoot = FileManager.default.homeDirectoryForCurrentUser
         .appendingPathComponent(".contextvault")
 
+    let vaultRoot: URL
     private(set) var projects: [Project] = []
     private(set) var lastModified: Date = Date()
 
+    // Production init — loads projects asynchronously off the main thread.
     init() {
+        vaultRoot = Self.defaultRoot
         createVaultRootIfNeeded()
         Task.detached(priority: .userInitiated) {
-            let loaded = Self.readProjectsFromDisk()
+            let loaded = Self.readProjectsFromDisk(root: self.vaultRoot)
             await MainActor.run { self.projects = loaded }
         }
+    }
+
+    // Testing init — loads synchronously from a custom directory, no background work.
+    init(root: URL) {
+        vaultRoot = root
+        createVaultRootIfNeeded()
+        projects = Self.readProjectsFromDisk(root: root)
     }
 
     // MARK: - Projects
 
     func loadProjects() {
         Task.detached(priority: .userInitiated) {
-            let loaded = Self.readProjectsFromDisk()
+            let loaded = Self.readProjectsFromDisk(root: self.vaultRoot)
             await MainActor.run { self.projects = loaded }
         }
     }
 
-    private static func readProjectsFromDisk() -> [Project] {
+    private static func readProjectsFromDisk(root: URL) -> [Project] {
         let fm = FileManager.default
         guard let dirs = try? fm.contentsOfDirectory(
-            at: vaultRoot,
+            at: root,
             includingPropertiesForKeys: [.isDirectoryKey],
             options: .skipsHiddenFiles
         ) else { return [] }
@@ -50,16 +60,14 @@ final class VaultManager {
     }
 
     func addProject(_ project: Project) throws {
-        let notesDir = Self.vaultRoot
-            .appendingPathComponent(project.slug)
-            .appendingPathComponent("notes")
+        let notesDir = project.notesDirectory(in: vaultRoot)
         try FileManager.default.createDirectory(at: notesDir, withIntermediateDirectories: true)
 
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
         encoder.outputFormatting = .prettyPrinted
         let data = try encoder.encode(project)
-        try data.write(to: Self.vaultRoot.appendingPathComponent(project.slug).appendingPathComponent(".project.json"))
+        try data.write(to: vaultRoot.appendingPathComponent(project.slug).appendingPathComponent(".project.json"))
 
         if !projects.contains(where: { $0.id == project.id }) {
             projects.append(project)
@@ -69,7 +77,7 @@ final class VaultManager {
     }
 
     func removeProject(_ project: Project) throws {
-        try FileManager.default.removeItem(at: Self.vaultRoot.appendingPathComponent(project.slug))
+        try FileManager.default.removeItem(at: vaultRoot.appendingPathComponent(project.slug))
         projects.removeAll { $0.id == project.id }
         lastModified = Date()
     }
@@ -88,7 +96,7 @@ final class VaultManager {
     func noteCount(for project: Project) -> Int {
         _ = lastModified
         return (try? FileManager.default.contentsOfDirectory(
-            at: project.notesDirectory,
+            at: project.notesDirectory(in: vaultRoot),
             includingPropertiesForKeys: nil,
             options: .skipsHiddenFiles
         ).filter { $0.pathExtension == "md" }.count) ?? 0
@@ -98,7 +106,7 @@ final class VaultManager {
         _ = lastModified
         let fm = FileManager.default
         guard let files = try? fm.contentsOfDirectory(
-            at: project.notesDirectory,
+            at: project.notesDirectory(in: vaultRoot),
             includingPropertiesForKeys: nil,
             options: .skipsHiddenFiles
         ) else { return [] }
@@ -111,19 +119,19 @@ final class VaultManager {
 
     func readNote(titled title: String, in project: Project) -> Note? {
         let slug = makeSlug(title)
-        return readNote(at: project.notesDirectory.appendingPathComponent("\(slug).md"), projectSlug: project.slug)
+        return readNote(at: project.notesDirectory(in: vaultRoot).appendingPathComponent("\(slug).md"), projectSlug: project.slug)
     }
 
     func writeNote(_ note: Note, to project: Project) throws {
-        try FileManager.default.createDirectory(at: project.notesDirectory, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: project.notesDirectory(in: vaultRoot), withIntermediateDirectories: true)
         var updated = note
         updated.updatedAt = Date()
-        try updated.markdownFileContent().write(to: project.notesDirectory.appendingPathComponent(note.filename), atomically: true, encoding: .utf8)
+        try updated.markdownFileContent().write(to: project.notesDirectory(in: vaultRoot).appendingPathComponent(note.filename), atomically: true, encoding: .utf8)
         lastModified = Date()
     }
 
     func deleteNote(_ note: Note, from project: Project) throws {
-        try FileManager.default.removeItem(at: project.notesDirectory.appendingPathComponent(note.filename))
+        try FileManager.default.removeItem(at: project.notesDirectory(in: vaultRoot).appendingPathComponent(note.filename))
         lastModified = Date()
     }
 
@@ -139,7 +147,7 @@ final class VaultManager {
     // MARK: - Private
 
     private func createVaultRootIfNeeded() {
-        try? FileManager.default.createDirectory(at: Self.vaultRoot, withIntermediateDirectories: true)
+        try? FileManager.default.createDirectory(at: vaultRoot, withIntermediateDirectories: true)
     }
 
     private func readNote(at url: URL, projectSlug: String) -> Note? {

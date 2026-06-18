@@ -79,6 +79,16 @@ final class CodeRAGManager {
         }
     }
 
+    // For testing: inject a pre-built index without hitting the filesystem.
+    func inject(index: BM25Index, for slug: String) {
+        indexLock.withLock { indexes[slug] = index }
+        states[slug] = .indexed(
+            fileCount: Set(index.allChunks.map(\.file)).count,
+            chunkCount: index.count,
+            indexedAt: Date()
+        )
+    }
+
     // MARK: - Thread-safe search (called from MCP tools on any thread)
 
     nonisolated func search(slug: String, query: String, topK: Int = 8) -> [ScoredChunk] {

@@ -14,9 +14,7 @@ struct Project: Identifiable, Codable, Hashable {
             .reduce("") { $0 + String($1) }
     }
 
-    var notesDirectory: URL {
-        VaultManager.vaultRoot
-            .appendingPathComponent(slug)
-            .appendingPathComponent("notes")
+    func notesDirectory(in vaultRoot: URL) -> URL {
+        vaultRoot.appendingPathComponent(slug).appendingPathComponent("notes")
     }
 }
