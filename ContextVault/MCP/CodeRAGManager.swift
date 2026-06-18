@@ -80,13 +80,19 @@ final class CodeRAGManager {
     }
 
     // For testing: inject a pre-built index without hitting the filesystem.
-    func inject(index: BM25Index, for slug: String) {
+    // nonisolated so tests can call it from any thread without actor hopping.
+    // The indexes dict is lock-protected; states is updated on MainActor via a Task.
+    nonisolated func inject(index: BM25Index, for slug: String) {
         indexLock.withLock { indexes[slug] = index }
-        states[slug] = .indexed(
-            fileCount: Set(index.allChunks.map(\.file)).count,
-            chunkCount: index.count,
-            indexedAt: Date()
-        )
+        let fileCount  = Set(index.allChunks.map(\.file)).count
+        let chunkCount = index.count
+        Task { @MainActor in
+            self.states[slug] = .indexed(
+                fileCount:  fileCount,
+                chunkCount: chunkCount,
+                indexedAt:  Date()
+            )
+        }
     }
 
     // MARK: - Thread-safe search (called from MCP tools on any thread)

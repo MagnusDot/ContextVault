@@ -1,9 +1,10 @@
 import Testing
 import Foundation
+import os
 @testable import ContextVault
 
 // Integration tests that:
-// 1. Generate a real Swift codebase on disk (10 files, ~700 lines total)
+// 1. Generate a real Swift codebase on disk (30 files)
 // 2. Index it with the actual BM25 chunker
 // 3. Run real search_code queries via MCPTools
 // 4. Verify results contain the expected functions
@@ -49,6 +50,9 @@ struct RAGIndexTests {
         CodeRAGManager.shared.inject(index: index, for: project.slug)
 
         tools = MCPTools(vault: vault)
+
+        testLog.section("RAGIndexTests")
+        testLog.setup(files: FakeCodebase.files.count, chunks: index.count, slug: project.slug)
     }
 
     // MARK: - Codebase statistics
@@ -64,7 +68,7 @@ struct RAGIndexTests {
         // 30 files with 3-10 top-level declarations each → expect 60+ chunks
         #expect(index.count >= 40,
             "Expected at least 40 chunks from \(FakeCodebase.files.count) files, got \(index.count)")
-        print("📦 Indexed \(index.count) chunks from \(FakeCodebase.files.count) files")
+        testLog.info("Indexed \(index.count) chunks from \(FakeCodebase.files.count) files")
     }
 
     @Test func indexCoversAllSourceFiles() {
@@ -84,8 +88,8 @@ struct RAGIndexTests {
     @Test func searchJWTFindsAuthService() {
         let hits = index.search(query: "JWT token validation", topK: 5)
         #expect(!hits.isEmpty, "Search for 'JWT token validation' must return results")
-        let names = hits.map(\.chunk.name)
-        print("🔍 'JWT token validation' → \(names.joined(separator: ", "))")
+        testLog.search(query: "JWT token validation", hits: hits.count, topScore: hits.first?.score ?? 0)
+        testLog.debug(hits.prefix(3).map(\.chunk.name).joined(separator: ", "))
 
         // AuthService contains JWT-related functions — at least one should rank high
         let hasAuth = hits.prefix(3).contains { h in
@@ -97,7 +101,8 @@ struct RAGIndexTests {
     @Test func searchRefreshTokenFindsRotateFunction() {
         let hits = index.search(query: "refresh token rotation", topK: 5)
         #expect(!hits.isEmpty)
-        print("🔍 'refresh token rotation' → \(hits.prefix(3).map { "\($0.chunk.name) [\(String(format: "%.2f", $0.score))]" }.joined(separator: ", "))")
+        testLog.search(query: "refresh token rotation", hits: hits.count, topScore: hits.first?.score ?? 0)
+        testLog.debug(hits.prefix(3).map { "\($0.chunk.name) [\(String(format: "%.2f", $0.score))]" }.joined(separator: ", "))
 
         let hasRotate = hits.prefix(3).contains { $0.chunk.name.contains("rotate") || $0.chunk.name.contains("Rotate") }
         #expect(hasRotate, "Top results for 'refresh token rotation' should include rotateRefreshToken")
@@ -106,7 +111,8 @@ struct RAGIndexTests {
     @Test func searchRetryLogicFindsNetworkClient() {
         let hits = index.search(query: "retry exponential backoff", topK: 5)
         #expect(!hits.isEmpty)
-        print("🔍 'retry exponential backoff' → \(hits.prefix(3).map { "\($0.chunk.name) (\($0.chunk.file))" }.joined(separator: ", "))")
+        testLog.search(query: "retry exponential backoff", hits: hits.count, topScore: hits.first?.score ?? 0)
+        testLog.debug(hits.prefix(3).map { "\($0.chunk.name) (\($0.chunk.file))" }.joined(separator: ", "))
 
         let hasNetwork = hits.prefix(3).contains { $0.chunk.file.contains("Network") }
         #expect(hasNetwork, "Retry logic should be found in NetworkClient")
@@ -115,7 +121,8 @@ struct RAGIndexTests {
     @Test func searchSyncConflictFindsSyncEngine() {
         let hits = index.search(query: "sync conflict resolution CRDT", topK: 5)
         #expect(!hits.isEmpty)
-        print("🔍 'sync conflict CRDT' → \(hits.prefix(3).map { "\($0.chunk.name) (\($0.chunk.file))" }.joined(separator: ", "))")
+        testLog.search(query: "sync conflict CRDT", hits: hits.count, topScore: hits.first?.score ?? 0)
+        testLog.debug(hits.prefix(3).map { "\($0.chunk.name) (\($0.chunk.file))" }.joined(separator: ", "))
 
         let hasSync = hits.prefix(3).contains { $0.chunk.file.contains("Sync") || $0.chunk.name.contains("apply") || $0.chunk.name.contains("merge") }
         #expect(hasSync, "Conflict resolution should be found in SyncEngine")
@@ -148,7 +155,7 @@ struct RAGIndexTests {
         #expect(!result.isError, "search_code must succeed when index is loaded")
         #expect(result.content.contains("▸"), "Result must contain chunk headers")
         #expect(result.content.contains("[score:"), "Result must include BM25 scores")
-        print("🛠 search_code result:\n\(result.content.prefix(400))\n…")
+        testLog.toolResult(chars: result.content.count, preview: String(result.content.prefix(120)))
     }
 
     @Test func searchCodeToolRecordsTokenSavings() {
@@ -165,7 +172,7 @@ struct RAGIndexTests {
         // callCount must always increment — savings may be 0 if fake files are small
         #expect(after.callCount > before.callCount,
             "search_code must increment call count (before: \(before.callCount), after: \(after.callCount))")
-        print("💰 Call #\(after.callCount) — cumulative savings: \(after.totalSaved) tokens")
+        testLog.info("Call #\(after.callCount) — cumulative savings: \(after.totalSaved) tokens")
     }
 
     @Test func getProjectContextReturnsCompactNotesAndIndex() {
@@ -175,7 +182,8 @@ struct RAGIndexTests {
         #expect(!result.isError)
         #expect(result.content.contains("▸ctx"))
         #expect(result.content.contains("▸idx"))
-        print("📋 Context output (\(result.content.count) chars):\n\(result.content.prefix(300))…")
+        testLog.info("get_project_context → \(result.content.count) chars")
+        testLog.debug(String(result.content.prefix(300)))
     }
 
     // MARK: - Real savings calculation
@@ -200,17 +208,8 @@ struct RAGIndexTests {
         let savingsRatio  = Double(oldWayTokens) / max(1, Double(cvTokens))
         let savingsPct    = Int((1.0 - Double(cvTokens) / Double(max(1, oldWayTokens))) * 100)
 
-        print("""
-        ── Real codebase savings ────────────────────────────
-        Files on disk:        \(allFiles.count) Swift files
-        Total source chars:   \(totalRawChars) (\(oldWayTokens) tokens)
-
-        3 × search_code (topK=3):
-        Matching chunk chars: \(cvChars) (\(cvTokens) tokens)
-
-        Savings: \(savingsPct)% — \(String(format: "%.1f", savingsRatio))× fewer tokens
-        ─────────────────────────────────────────────────────
-        """)
+        testLog.section("Real codebase savings")
+        testLog.info("\(allFiles.count) files → \(oldWayTokens) tokens raw  vs  \(cvTokens) tokens via search_code  (\(savingsPct)%  \(String(format: "%.1f", savingsRatio))×)")
 
         #expect(oldWayTokens > cvTokens,
             "search_code must cost fewer tokens than reading all files (\(oldWayTokens) vs \(cvTokens))")
@@ -253,22 +252,9 @@ struct RAGIndexTests {
         let ratio   = Double(oldWayTotal) / Double(max(1, cvTotal))
         let savings = oldWayTotal - cvTotal
 
-        print("""
-        ── Full session comparison ──────────────────────────
-        WITHOUT ContextVault:
-          Read \(allFiles.count) files: \(rawReadTokens) tok
-          Raw JSON (\(fakePRListJSON.count) chars): \(fakePRListJSON.count / 4) tok
-          TOTAL: \(oldWayTotal) tokens
-
-        WITH ContextVault:
-          get_project_context: \(ctxResult.content.count / 4) tok
-          search_code × 2: \((search1.content.count + search2.content.count) / 4) tok
-          compress(JSON): \(compressed.content.count / 4) tok
-          TOTAL: \(cvTotal) tokens
-
-        Savings: \(savings) tokens — \(String(format: "%.1f", ratio))× fewer
-        ─────────────────────────────────────────────────────
-        """)
+        testLog.section("Full session comparison")
+        testLog.tokens(without: oldWayTotal, with: cvTotal)
+        testLog.info("ctx=\(ctxResult.content.count/4)tok  search×2=\((search1.content.count+search2.content.count)/4)tok  compress=\(compressed.content.count/4)tok  savings=\(savings)tok  \(String(format:"%.1f",ratio))×")
 
         #expect(ratio >= 2.0, "Full session should be at least 2× cheaper with ContextVault")
         #expect(!ctxResult.isError)
