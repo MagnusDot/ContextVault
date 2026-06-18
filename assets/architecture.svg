@@ -18,7 +18,7 @@
 
   <!-- MCP SERVER -->
   <rect x="290" y="58" width="280" height="220" fill="#161b22" rx="8" stroke="#30363d" stroke-width="1"/>
-  <text x="430" y="78" text-anchor="middle" fill="#8b949e" font-size="10" font-weight="600" letter-spacing="1">CLAUDEVAULT MCP SERVER</text>
+  <text x="430" y="78" text-anchor="middle" fill="#8b949e" font-size="10" font-weight="600" letter-spacing="1">CONTEXTVAULT MCP SERVER</text>
   <rect x="306" y="88" width="116" height="32" fill="#0d419d" rx="6"/>
   <text x="364" y="101" text-anchor="middle" fill="#79c0ff" font-size="10" font-weight="600">WebSocket :9876</text>
   <text x="364" y="113" text-anchor="middle" fill="#a5d6ff" font-size="8">JSON-RPC 2.0</text>
@@ -42,14 +42,14 @@
   <text x="316" y="252" fill="#8b949e" font-size="8">JSON → columnar · Logs → errors only · KV-cache prefix stable</text>
   <text x="316" y="264" fill="#8b949e" font-size="8">Large content offloaded to CCRStore · retrieve on demand</text>
   <rect x="306" y="278" width="248" height="26" fill="#21262d" rx="6"/>
-  <text x="430" y="290" text-anchor="middle" fill="#8b949e" font-size="8.5">Auto-discovery: ~/.config/claude/ide/claudevault.lock</text>
+  <text x="430" y="290" text-anchor="middle" fill="#8b949e" font-size="8.5">Auto-discovery: ~/.config/claude/ide/contextvault.lock</text>
   <text x="430" y="300" text-anchor="middle" fill="#6e7681" font-size="8">{ pid, wsPort: 9876, httpPort: 9877, version }</text>
 
   <!-- STORAGE -->
   <rect x="640" y="58" width="195" height="145" fill="#161b22" rx="8" stroke="#30363d" stroke-width="1"/>
   <text x="737" y="78" text-anchor="middle" fill="#8b949e" font-size="10" font-weight="600" letter-spacing="1">STORAGE</text>
   <rect x="656" y="88" width="163" height="46" fill="#21262d" rx="6"/>
-  <text x="737" y="103" text-anchor="middle" fill="#e6edf3" font-size="10" font-weight="600">~/.claudevault/</text>
+  <text x="737" y="103" text-anchor="middle" fill="#e6edf3" font-size="10" font-weight="600">~/.contextvault/</text>
   <text x="666" y="116" fill="#8b949e" font-size="8">project-slug/.project.json</text>
   <text x="666" y="127" fill="#8b949e" font-size="8">notes/context.md · architecture.md…</text>
   <rect x="656" y="142" width="163" height="38" fill="#21262d" rx="6"/>
