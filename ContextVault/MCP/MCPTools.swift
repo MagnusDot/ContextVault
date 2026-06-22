@@ -131,19 +131,25 @@ final class MCPTools {
             return w0 != w1 ? w0 > w1 : $0.value.count > $1.value.count
         }
 
+        // Show types + the most-referenced methods first, not every helper. Keeps the map a
+        // navigation aid, not a full dump — the agent uses it to pick a file, then reads it.
         var lines: [String] = []
         for (file, chunks) in ordered {
-            let syms = chunks
-                .sorted { $0.startLine < $1.startLine }
-                .prefix(12)
+            let sorted = chunks.sorted {
+                let r0 = index.referenceCount($0.name), r1 = index.referenceCount($1.name)
+                return r0 != r1 ? r0 > r1 : $0.startLine < $1.startLine
+            }
+            let syms = sorted
+                .prefix(6)
                 .map { "\(prefix[$0.type] ?? "?"):\($0.name)@\($0.startLine)" }
                 .joined(separator: " ")
-            let more = chunks.count > 12 ? " +\(chunks.count - 12)" : ""
+            let more = chunks.count > 6 ? " +\(chunks.count - 6)" : ""
             lines.append("\(file) \(syms)\(more)")
         }
 
-        // Cap inline; offload the long tail to CCR so huge projects don't blow context.
-        let inlineMax = 50
+        // Cap inline tightly — the top central files are what matter for a cold start.
+        // The long tail is offloaded to CCR (retrieve only if needed).
+        let inlineMax = 20
         let header = "▸map (\(byFile.count) files · most-referenced first · c=class s=struct e=enum x=ext f=func)\n"
         if lines.count > inlineMax {
             let inline = lines.prefix(inlineMax).joined(separator: "\n")

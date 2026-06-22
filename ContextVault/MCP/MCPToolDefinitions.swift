@@ -166,12 +166,15 @@ enum MCPToolDefinitions {
             BM25 search over ALL indexed function/class/struct bodies. Returns full code inline.
             10–20× cheaper than read_file. Use this first — not grep, not directory listing.
 
-            ── QUERY — use natural words, not exact symbol names ──
-            camelCase and snake_case are split automatically:
+            ── QUERY — KEEP IT SHORT: one or two words, or a single type/symbol name ──
+            Short queries rank best. Long multi-term queries dilute the score and make you
+            re-search. camelCase and snake_case are split automatically.
+              ✓ "MCPToolDefinitions"    → the tool schema definitions, in one shot
               ✓ "websocket handshake"   → finds handleWsHandshake, WebSocketHandshakeManager…
-              ✓ "auth token expire"     → finds checkTokenExpiry, invalidateSession…
               ✓ "struct CodeChunk"      → finds the CodeChunk struct definition
-              ✗ "fetchWebSocketHandshake"  → too specific, may miss synonyms
+              ✗ "MCPToolDefinitions all inputSchema properties required" → too many terms, noisy
+              ✗ "struct MCPToolDefinitions static let all entries schema" → re-searching, just say "MCPToolDefinitions"
+            If a search returns the right file, STOP. Don't re-search it with more words.
 
             ── RESULT FORMAT ──
             Each match looks like:
