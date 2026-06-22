@@ -1,7 +1,6 @@
 import Network
 import Foundation
 
-// HTTP/SSE MCP server on port 9877 — the transport Claude Code uses natively.
 // All methods run on @MainActor (inherited from SWIFT_DEFAULT_ACTOR_ISOLATION).
 // NW callbacks dispatch back to MainActor via Task { @MainActor in ... }.
 final class MCPHTTPServer {

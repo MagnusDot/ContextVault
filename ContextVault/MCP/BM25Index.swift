@@ -1,7 +1,5 @@
 import Foundation
 
-// BM25 full-text search over code chunks.
-// No external dependencies — pure Swift implementation.
 // Parameters: k1=1.5 (TF saturation), b=0.75 (length normalisation).
 struct BM25Index {
 

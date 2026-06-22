@@ -10,7 +10,6 @@ final class VaultManager {
     private(set) var projects: [Project] = []
     private(set) var lastModified: Date = Date()
 
-    // Production init — loads projects asynchronously off the main thread.
     init() {
         vaultRoot = Self.defaultRoot
         createVaultRootIfNeeded()
@@ -20,7 +19,6 @@ final class VaultManager {
         }
     }
 
-    // Testing init — loads synchronously from a custom directory, no background work.
     init(root: URL) {
         vaultRoot = root
         createVaultRootIfNeeded()
