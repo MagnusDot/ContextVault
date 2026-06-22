@@ -1,85 +1,40 @@
 <svg viewBox="0 0 800 340" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif">
-  <title>Token consumption: without vs with ContextVault</title>
-
-  <!-- Background -->
+  <title>Measured token consumption: without vs with ContextVault</title>
   <rect width="800" height="340" fill="#0d1117" rx="12"/>
 
-  <!-- Title -->
-  <text x="400" y="36" text-anchor="middle" fill="#e6edf3" font-size="15" font-weight="600">Token consumption per session — same project, same task</text>
+  <text x="400" y="34" text-anchor="middle" fill="#e6edf3" font-size="15" font-weight="700">Measured token consumption on real repo tasks</text>
+  <text x="400" y="53" text-anchor="middle" fill="#8b949e" font-size="10">claudevault · gpt-5.5 · complete paired benchmark runs</text>
 
-  <!-- === WITHOUT === -->
-  <text x="200" y="72" text-anchor="middle" fill="#f85149" font-size="12" font-weight="600" letter-spacing="1">WITHOUT CONTEXTVAULT</text>
+  <text x="80" y="92" fill="#f85149" font-size="11" font-weight="700">WITHOUT CONTEXTVAULT</text>
+  <rect x="80" y="106" width="560" height="34" fill="#f8514933" rx="6"/>
+  <rect x="80" y="106" width="560" height="34" fill="#f85149" opacity="0.88" rx="6"/>
+  <text x="96" y="128" fill="#ffffff" font-size="12" font-weight="600">817,449 total tokens</text>
+  <text x="650" y="128" fill="#ffa198" font-size="11" font-weight="700">baseline</text>
 
-  <!-- Bars without -->
-  <!-- Understand project: 7500 tokens -->
-  <rect x="40" y="90" width="320" height="28" fill="#f8514933" rx="4"/>
-  <rect x="40" y="90" width="320" height="28" fill="#f85149" rx="4" opacity="0.85"/>
-  <text x="50" y="109" fill="#ffffff" font-size="11" font-weight="500">Read files to understand structure</text>
-  <text x="368" y="109" text-anchor="end" fill="#ffa198" font-size="11" font-weight="700">~7,500 tok</text>
+  <text x="80" y="166" fill="#3fb950" font-size="11" font-weight="700">WITH CONTEXTVAULT</text>
+  <rect x="80" y="180" width="560" height="34" fill="#3fb95024" rx="6"/>
+  <rect x="80" y="180" width="258" height="34" fill="#3fb950" opacity="0.9" rx="6"/>
+  <text x="96" y="202" fill="#ffffff" font-size="12" font-weight="600">376,851 total tokens</text>
+  <text x="650" y="202" fill="#56d364" font-size="11" font-weight="700">53.9% less</text>
 
-  <!-- Find functions: 4500 tokens -->
-  <rect x="40" y="128" width="192" height="28" fill="#f8514933" rx="4"/>
-  <rect x="40" y="128" width="192" height="28" fill="#f85149" rx="4" opacity="0.85"/>
-  <text x="50" y="147" fill="#ffffff" font-size="11" font-weight="500">grep + Read files for code</text>
-  <text x="368" y="147" text-anchor="end" fill="#ffa198" font-size="11" font-weight="700">~4,500 tok</text>
+  <line x1="80" y1="236" x2="720" y2="236" stroke="#30363d" stroke-width="1"/>
 
-  <!-- Re-read same files: 3000 tokens -->
-  <rect x="40" y="166" width="128" height="28" fill="#f8514933" rx="4"/>
-  <rect x="40" y="166" width="128" height="28" fill="#f85149" rx="4" opacity="0.85"/>
-  <text x="50" y="185" fill="#ffffff" font-size="11" font-weight="500">Re-read + context recovery</text>
-  <text x="368" y="185" text-anchor="end" fill="#ffa198" font-size="11" font-weight="700">~3,000 tok</text>
+  <rect x="80" y="258" width="145" height="48" fill="#161b22" rx="8" stroke="#30363d"/>
+  <text x="152" y="278" text-anchor="middle" fill="#79c0ff" font-size="10" font-weight="700">Prompt tokens</text>
+  <text x="152" y="296" text-anchor="middle" fill="#e6edf3" font-size="15" font-weight="800">54.0% less</text>
 
-  <!-- Tool outputs: 3000 tokens -->
-  <rect x="40" y="204" width="128" height="28" fill="#f8514933" rx="4"/>
-  <rect x="40" y="204" width="128" height="28" fill="#f85149" rx="4" opacity="0.85"/>
-  <text x="50" y="223" fill="#ffffff" font-size="11" font-weight="500">Raw tool outputs (JSON/logs)</text>
-  <text x="368" y="223" text-anchor="end" fill="#ffa198" font-size="11" font-weight="700">~3,000 tok</text>
+  <rect x="245" y="258" width="145" height="48" fill="#161b22" rx="8" stroke="#30363d"/>
+  <text x="318" y="278" text-anchor="middle" fill="#79c0ff" font-size="10" font-weight="700">Completion tokens</text>
+  <text x="318" y="296" text-anchor="middle" fill="#e6edf3" font-size="15" font-weight="800">52.8% less</text>
 
-  <!-- Total without -->
-  <line x1="40" y1="245" x2="380" y2="245" stroke="#30363d" stroke-width="1"/>
-  <text x="50" y="263" fill="#e6edf3" font-size="12" font-weight="600">TOTAL</text>
-  <text x="368" y="263" text-anchor="end" fill="#f85149" font-size="20" font-weight="800">~18,000 tokens</text>
-  <text x="368" y="281" text-anchor="end" fill="#8b949e" font-size="10">≈ $0.054 per session (Sonnet)</text>
+  <rect x="410" y="258" width="145" height="48" fill="#161b22" rx="8" stroke="#30363d"/>
+  <text x="482" y="278" text-anchor="middle" fill="#79c0ff" font-size="10" font-weight="700">Agent turns</text>
+  <text x="482" y="296" text-anchor="middle" fill="#e6edf3" font-size="15" font-weight="800">46.0% less</text>
 
-  <!-- Divider -->
-  <line x1="400" y1="60" x2="400" y2="300" stroke="#21262d" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <rect x="575" y="258" width="145" height="48" fill="#13230f" rx="8" stroke="#3fb950" stroke-opacity="0.7"/>
+  <text x="648" y="278" text-anchor="middle" fill="#56d364" font-size="10" font-weight="700">Best task run</text>
+  <text x="648" y="296" text-anchor="middle" fill="#e6edf3" font-size="15" font-weight="800">84.7% less</text>
 
-  <!-- === WITH === -->
-  <text x="600" y="72" text-anchor="middle" fill="#3fb950" font-size="12" font-weight="600" letter-spacing="1">WITH CONTEXTVAULT</text>
-
-  <!-- Bars with -->
-  <!-- get_project_context: 300 tokens -->
-  <rect x="420" y="90" width="14" height="28" fill="#3fb95033" rx="4"/>
-  <rect x="420" y="90" width="14" height="28" fill="#3fb950" rx="4" opacity="0.85"/>
-  <text x="442" y="109" fill="#e6edf3" font-size="11" font-weight="500">get_project_context (notes)</text>
-  <text x="760" y="109" text-anchor="end" fill="#56d364" font-size="11" font-weight="700">~300 tok</text>
-
-  <!-- search_code × 3: 600 tokens -->
-  <rect x="420" y="128" width="26" height="28" fill="#3fb95033" rx="4"/>
-  <rect x="420" y="128" width="26" height="28" fill="#3fb950" rx="4" opacity="0.85"/>
-  <text x="452" y="147" fill="#e6edf3" font-size="11" font-weight="500">search_code × 3 (BM25, inline)</text>
-  <text x="760" y="147" text-anchor="end" fill="#56d364" font-size="11" font-weight="700">~600 tok</text>
-
-  <!-- compress tool outputs: 600 tokens -->
-  <rect x="420" y="166" width="26" height="28" fill="#3fb95033" rx="4"/>
-  <rect x="420" y="166" width="26" height="28" fill="#3fb950" rx="4" opacity="0.85"/>
-  <text x="452" y="185" fill="#e6edf3" font-size="11" font-weight="500">compress() on tool outputs</text>
-  <text x="760" y="185" text-anchor="end" fill="#56d364" font-size="11" font-weight="700">~800 tok</text>
-
-  <!-- index_codebase: 200 tokens -->
-  <rect x="420" y="204" width="10" height="28" fill="#3fb95033" rx="4"/>
-  <rect x="420" y="204" width="10" height="28" fill="#3fb950" rx="4" opacity="0.85"/>
-  <text x="436" y="223" fill="#e6edf3" font-size="11" font-weight="500">index_codebase (symbol map)</text>
-  <text x="760" y="223" text-anchor="end" fill="#56d364" font-size="11" font-weight="700">~200 tok</text>
-
-  <!-- Total with -->
-  <line x1="420" y1="245" x2="765" y2="245" stroke="#30363d" stroke-width="1"/>
-  <text x="430" y="263" fill="#e6edf3" font-size="12" font-weight="600">TOTAL</text>
-  <text x="760" y="263" text-anchor="end" fill="#3fb950" font-size="20" font-weight="800">~1,900 tokens</text>
-  <text x="760" y="281" text-anchor="end" fill="#8b949e" font-size="10">≈ $0.006 per session (Sonnet)</text>
-
-  <!-- Savings badge -->
-  <rect x="310" y="294" width="180" height="34" fill="#1f6feb" rx="8"/>
-  <text x="400" y="308" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="600">9× fewer tokens</text>
-  <text x="400" y="322" text-anchor="middle" fill="#a5d6ff" font-size="10">$0.048 saved per session</text>
+  <rect x="300" y="70" width="200" height="26" fill="#1f6feb" rx="13"/>
+  <text x="400" y="87" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700">2.17× average efficiency gain</text>
 </svg>

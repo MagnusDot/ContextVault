@@ -6,7 +6,7 @@
     <img src="https://img.shields.io/badge/platform-macOS%2026.4%2B-blue?style=flat-square&logo=apple"/>
     <img src="https://img.shields.io/badge/swift-6.0-orange?style=flat-square&logo=swift"/>
     <img src="https://img.shields.io/badge/protocol-MCP-purple?style=flat-square"/>
-    <img src="https://img.shields.io/badge/token%20savings-up%20to%2098%25-brightgreen?style=flat-square"/>
+    <img src="https://img.shields.io/badge/benchmarked-54%25%20fewer%20tokens-brightgreen?style=flat-square"/>
     <img src="https://img.shields.io/badge/dependencies-zero-lightgrey?style=flat-square"/>
   </p>
 </div>
@@ -35,9 +35,9 @@ ContextVault is a native macOS menubar app that acts as a **persistent memory an
 
 It exposes a local MCP server that any agent discovers automatically. Instead of re-reading files, the agent reads compact structured notes. Instead of grepping source files, it runs BM25 semantic search over a pre-built code index. Instead of receiving raw tool outputs, it gets compressed, cache-aligned responses.
 
-**The result: 9× fewer tokens consumed per session.**
+**The measured result: 54% fewer tokens and 46% fewer agent turns in a live Codex benchmark.** Individual tasks dropped as much as **84.7%** in total token usage.
 
-> ContextVault is designed to be agent-agnostic. It currently integrates with Claude Code and Claude Desktop via WebSocket and HTTP/SSE. Support for additional agents (Cursor, Codex, Windsurf, Copilot) is on the roadmap as their MCP implementations mature.
+> ContextVault is designed to be agent-agnostic. It currently speaks MCP over WebSocket and HTTP/SSE for Claude-style and Codex-style clients. Support for additional agents (Cursor, Windsurf, Copilot) is on the roadmap as their MCP implementations mature.
 
 ---
 
@@ -69,7 +69,34 @@ Storage lives entirely on disk as plain Markdown files — no database, no sync,
 
 ## Token savings
 
-### Per session — same project, same task
+### Live benchmark — same project, same tasks
+
+Latest benchmark command:
+
+```bash
+python3 scripts/benchmark.py --project claudevault --runs 3 --model gpt-5.5
+```
+
+Across the complete paired runs captured in the benchmark log, ContextVault cut total token usage by more than half while also reducing tool-discovery turns.
+
+| Metric | Without ContextVault | With ContextVault | Reduction |
+|---|---:|---:|---:|
+| Prompt tokens | 763,327 | 351,315 | **54.0%** |
+| Completion tokens | 54,122 | 25,536 | **52.8%** |
+| Total tokens | 817,449 | 376,851 | **53.9%** |
+| Agent turns | 137 | 74 | **46.0%** |
+
+Average total tokens per task dropped from **102,181** to **47,106** — a **2.17× efficiency gain** on real repository work.
+
+| Task | Total token reduction | Turn reduction |
+|---|---:|---:|
+| `rate-limiter` | **73.0%** overall, up to **84.7%** on one run | 28 → 10 |
+| `websocket-broadcast` | **56.6%** | 31 → 15 |
+| `bm25-recency-boost` | **53.6%** | 23 → 14 |
+| `new-mcp-tool-full` | **44.0%** | 39 → 27 |
+| `token-savings-mcp-tool` | **39.7%** | 16 → 8 |
+
+### Why the savings happen
 
 ![Token comparison](assets/token-comparison.svg)
 
@@ -79,9 +106,9 @@ Storage lives entirely on disk as plain Markdown files — no database, no sync,
 | Find relevant functions | ~4,500 tokens (grep + Read) | ~200 tokens (`search_code`) | **96%** |
 | Re-read previously seen context | ~3,000 tokens | ~0 tokens (KV cache hit) | **100%** |
 | Process tool outputs (JSON/logs) | ~3,000 tokens (raw) | ~800 tokens (compressed) | **73%** |
-| **Total** | **~18,000 tokens** | **~1,900 tokens** | **89%** |
+| **Total** | **~18,000 tokens** | **~1,900 tokens** | **up to 89%** |
 
-### By feature
+### By benchmark task
 
 ![Savings breakdown](assets/savings-breakdown.svg)
 
@@ -91,11 +118,11 @@ Storage lives entirely on disk as plain Markdown files — no database, no sync,
 
 | | Without ContextVault | With ContextVault |
 |---|---|---|
-| Tokens / month | ~2,700,000 | ~285,000 |
-| Cost / month (Sonnet) | ~$8.10 | ~$0.86 |
-| **Monthly savings** | | **$7.24 per developer** |
+| Tokens / month | ~2,700,000 | ~1,245,000 |
+| Cost / month at $3 / 1M input tokens | ~$8.10 | ~$3.74 |
+| **Monthly savings** | | **~$4.36 per developer** |
 
-> Costs based on Claude Sonnet input pricing ($3 / 1M tokens). Savings scale linearly with usage — a team of 5 developers saves ~**$435/year**.
+> Projection uses the measured 53.9% benchmark reduction. Savings scale linearly with usage — a team of 5 developers saves ~**$260/year** at this conservative rate, before counting the productivity gain from fewer tool-discovery turns.
 
 ---
 
@@ -295,7 +322,7 @@ ContextVault exposes an MCP server over WebSocket (:9876) and HTTP/SSE (:9877).
 
 ## Roadmap
 
-- [ ] Multi-agent support: Cursor, Codex, Windsurf, GitHub Copilot
+- [ ] Multi-agent support: Cursor, Windsurf, GitHub Copilot
 - [ ] Debug auto-discovery lock file on first launch
 - [ ] Token savings counter in MenuBarExtra popover
 - [ ] ProseCompressor — extract signal sentences from long notes
