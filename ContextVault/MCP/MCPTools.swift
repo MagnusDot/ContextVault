@@ -57,7 +57,11 @@ final class MCPTools {
 
         let notes = vault.notes(for: project)
 
-        let contentHash = CacheAligner.shared.hash(for: notes)
+        // Fold the code index identity into the cache hash so a re-index busts the cache
+        // even when notes are unchanged.
+        let rag = CodeRAGManager.shared
+        let indexFingerprint = rag.bm25(slug: project.slug).map { "\($0.count)" } ?? "0"
+        let contentHash = CacheAligner.shared.hash(for: notes) + ":" + indexFingerprint
         let cacheKey = "ctx:\(project.slug)"
         if let cached = CacheAligner.shared.get(key: cacheKey, contentHash: contentHash) {
             return .ok(cached)
@@ -87,12 +91,15 @@ final class MCPTools {
             ctxBody = "∅ — write_note(project:\"\(project.slug)\",title:\"context\",body:\"...\",tags:[\"context\"])"
         }
 
+        let mapSection = buildCodeMap(slug: project.slug)
+
         let output = """
         ⬡ \(project.slug) \(project.rootPath) \(notes.count)♦
         ▸ctx
         \(ctxBody)
         ▸idx
         \(idxLines.isEmpty ? "∅" : idxLines.joined(separator: "\n"))
+        \(mapSection)▸how use ▸map to jump straight to the file you need · search_code only when location is unknown · act as soon as you have enough, don't repeat a search or re-read what you already have
         ▸ read/write notes freely — no limit
         """
 
@@ -100,11 +107,58 @@ final class MCPTools {
         return .ok(output)
     }
 
+    // Compact file→symbol map built from the in-memory BM25 index (no disk re-scan).
+    // Lets the agent jump straight to the right file with ONE call — no search_code round-trips
+    // for tasks where the location is obvious. Format mirrors index_codebase (agents know it).
+    private func buildCodeMap(slug: String) -> String {
+        guard let index = CodeRAGManager.shared.bm25(slug: slug), index.count > 0 else { return "" }
+
+        let prefix: [CodeChunk.ChunkType: String] = [
+            .class_: "c", .struct_: "s", .enum_: "e", .extension_: "x", .function: "f"
+        ]
+
+        var byFile: [String: [CodeChunk]] = [:]
+        for chunk in index.allChunks { byFile[chunk.file, default: []].append(chunk) }
+
+        // Order files by centrality (aider-style): a file whose symbols are referenced from all
+        // over the codebase is the structural core an agent should see first — far more useful
+        // for a cold start than just "the file with the most declarations".
+        func weight(_ chunks: [CodeChunk]) -> Int {
+            chunks.reduce(0) { $0 + index.referenceCount($1.name) }
+        }
+        let ordered = byFile.sorted {
+            let w0 = weight($0.value), w1 = weight($1.value)
+            return w0 != w1 ? w0 > w1 : $0.value.count > $1.value.count
+        }
+
+        var lines: [String] = []
+        for (file, chunks) in ordered {
+            let syms = chunks
+                .sorted { $0.startLine < $1.startLine }
+                .prefix(12)
+                .map { "\(prefix[$0.type] ?? "?"):\($0.name)@\($0.startLine)" }
+                .joined(separator: " ")
+            let more = chunks.count > 12 ? " +\(chunks.count - 12)" : ""
+            lines.append("\(file) \(syms)\(more)")
+        }
+
+        // Cap inline; offload the long tail to CCR so huge projects don't blow context.
+        let inlineMax = 50
+        let header = "▸map (\(byFile.count) files · most-referenced first · c=class s=struct e=enum x=ext f=func)\n"
+        if lines.count > inlineMax {
+            let inline = lines.prefix(inlineMax).joined(separator: "\n")
+            let tail = lines.dropFirst(inlineMax).joined(separator: "\n")
+            let hash = CCRStore.shared.put(tail)
+            return header + inline + "\n[\(lines.count - inlineMax) more files — retrieve(hash:\"\(hash)\")]\n"
+        }
+        return header + lines.joined(separator: "\n") + "\n"
+    }
+
     // MARK: - list_notes
 
     private func listNotes(_ args: [String: Any]) -> MCPToolResult {
         guard let slug = args["project"] as? String,
-              let project = vault.projects.first(where: { $0.slug == slug })
+              let project = vault.projects.first(where: { $0.slug.lowercased() == slug.lowercased() })
         else { return .err(noProject(args["project"] as? String)) }
 
         let notes = vault.notes(for: project)
@@ -124,7 +178,7 @@ final class MCPTools {
     private func readNote(_ args: [String: Any]) -> MCPToolResult {
         guard let slug = args["project"] as? String,
               let title = args["title"] as? String,
-              let project = vault.projects.first(where: { $0.slug == slug })
+              let project = vault.projects.first(where: { $0.slug.lowercased() == slug.lowercased() })
         else { return .err("Missing required: project, title") }
 
         guard let note = vault.readNote(titled: title, in: project) else {
@@ -143,7 +197,7 @@ final class MCPTools {
         guard let slug = args["project"] as? String,
               let title = args["title"] as? String,
               let body = args["body"] as? String,
-              let project = vault.projects.first(where: { $0.slug == slug })
+              let project = vault.projects.first(where: { $0.slug.lowercased() == slug.lowercased() })
         else { return .err("Missing required: project, title, body") }
 
         let tags = args["tags"] as? [String] ?? []
@@ -170,7 +224,7 @@ final class MCPTools {
     private func searchNotes(_ args: [String: Any]) -> MCPToolResult {
         guard let slug = args["project"] as? String,
               let query = args["query"] as? String,
-              let project = vault.projects.first(where: { $0.slug == slug })
+              let project = vault.projects.first(where: { $0.slug.lowercased() == slug.lowercased() })
         else { return .err("Missing required: project, query") }
 
         let results = vault.searchNotes(query: query, in: project)
@@ -203,7 +257,7 @@ final class MCPTools {
 
     private func indexCodebase(_ args: [String: Any]) -> MCPToolResult {
         guard let slug = args["project"] as? String,
-              let project = vault.projects.first(where: { $0.slug == slug })
+              let project = vault.projects.first(where: { $0.slug.lowercased() == slug.lowercased() })
         else { return .err(noProject(args["project"] as? String)) }
 
         let exts = args["extensions"] as? [String]
@@ -279,37 +333,59 @@ final class MCPTools {
     // MARK: - search_code (RAG)
 
     private func searchCode(_ args: [String: Any]) -> MCPToolResult {
-        guard let slug = args["project"] as? String,
-              let query = args["query"] as? String,
-              let project = vault.projects.first(where: { $0.slug == slug })
+        guard let rawProject = args["project"] as? String,
+              let query = args["query"] as? String
         else { return .err("Missing required: project, query") }
 
+        // Accept a project slug OR any absolute path inside the project.
+        let project = vault.projects.first(where: { $0.slug.lowercased() == rawProject.lowercased() })
+            ?? vault.project(forPath: rawProject)
+        guard let project else { return .err(noProject(rawProject)) }
+
         let rag = CodeRAGManager.shared
+        let slug = project.slug
         guard rag.isIndexed(slug: slug) else {
             return .err("""
-            Project '\(slug)' has no code index yet.
+            Project '\(project.slug)' has no code index yet.
             Ask the user to click "Re-index" in the Code Index panel (toolbar button ⚡), or call index_codebase first.
             """)
         }
 
-        let topK = args["topK"] as? Int ?? 5
-        let results = rag.search(slug: slug, query: query, topK: topK)
-        guard !results.isEmpty else {
-            return .ok("No code matching '\(query)' found in \(project.name).")
+        // Hard cap: large topK floods context with weak matches and triggers fishing loops.
+        let topK = min(args["topK"] as? Int ?? 3, 5)
+        let raw = rag.search(slug: slug, query: query, topK: max(topK, 5))
+        guard let top = raw.first else {
+            return .ok("∅ no match for '\(query)' — this concept likely doesn't exist in the codebase yet. If you're adding a NEW feature, proceed and write it without searching further.")
         }
+
+        // Relative cutoff: drop the long tail of weak matches (< 45% of best score).
+        // A noise query (concept not in code) collapses to 1-2 results instead of a 10-chunk dump.
+        let floor = top.score * 0.45
+        let results = Array(raw.filter { $0.score >= floor }.prefix(topK))
+
+        // Weak-top detection — the grep-empty equivalent for BM25.
+        // If the best match covers less than half the query's meaningful tokens,
+        // it's a thematic miss: tell the agent to stop searching and build.
+        let qTokens = Set(BM25Index.tokenize(query))
+        let topTokens = Set(BM25Index.tokenize(top.chunk.body))
+        let coverage = qTokens.isEmpty ? 1.0 : Double(qTokens.intersection(topTokens).count) / Double(qTokens.count)
+        let weakHint = coverage < 0.5
+            ? "⚠ weak matches (\(Int(coverage * 100))% term coverage) — this may be a NEW feature not yet in the code. Don't keep searching; write it from the patterns below.\n\n"
+            : ""
 
         let fmt = results.map { r -> String in
             let c = r.chunk
-            let score = String(format: "%.2f", r.score)
-            let header = "▸ \(c.file):\(c.startLine) · \(c.type.rawValue) \(c.name) [score:\(score)]"
-            // Body: cap at 80 lines to avoid blowing context
+            // Header: absolute path — use directly with read_file, no construction needed
+            let absPath = "\(project.rootPath)/\(c.file)"
+            let header = "▸ \(absPath):\(c.startLine)-\(c.endLine) [\(c.type.rawValue) \(c.name)]"
+            // Body: cap at 50 lines to keep context lean
             let lines = c.body.components(separatedBy: "\n")
             let body: String
-            if lines.count > 80 {
-                let inline = lines.prefix(60).joined(separator: "\n")
-                let rest = lines.dropFirst(60).joined(separator: "\n")
+            if lines.count > 50 {
+                let inline = lines.prefix(40).joined(separator: "\n")
+                let rest = lines.dropFirst(40).joined(separator: "\n")
                 let hash = CCRStore.shared.put(rest)
-                body = inline + "\n... [\(lines.count - 60) lines — retrieve(hash:\"\(hash)\")]"
+                body = inline + "\n... [\(lines.count - 40) lines — retrieve(hash:\"\(hash)\")]"
             } else {
                 body = c.body
             }
@@ -330,16 +406,25 @@ final class MCPTools {
         let readTokens = uniqueFiles * avgFileTokens
         TokenSavingsStore.shared.record(slug: slug, savedTokens: readTokens - searchTokens)
 
-        return .ok("\(results.count) matches for '\(query)':\n\n\(fmt)")
+        return .ok("\(weakHint)\(results.count) match\(results.count == 1 ? "" : "es") for '\(query)':\n\n\(fmt)")
     }
 
     // MARK: - read_chunk
 
     private func readChunk(_ args: [String: Any]) -> MCPToolResult {
         guard let slug = args["project"] as? String,
-              let file = args["file"] as? String,
+              let rawFile = args["file"] as? String,
               let line = args["line"] as? Int
         else { return .err("Missing required: project, file, line") }
+
+        // Accept both absolute paths (from search_code ▸ headers) and relative paths
+        let file: String
+        if let project = vault.projects.first(where: { $0.slug.lowercased() == slug.lowercased() }),
+           rawFile.hasPrefix(project.rootPath) {
+            file = String(rawFile.dropFirst(project.rootPath.count)).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        } else {
+            file = rawFile
+        }
 
         let rag = CodeRAGManager.shared
         guard let chunk = rag.chunk(slug: slug, file: file, startLine: line) else {

@@ -22,9 +22,12 @@ enum CodeChunker {
             options: [.skipsHiddenFiles, .skipsPackageDescendants]
         ) else { return .init(chunks: [], fileCount: 0) }
 
+        let skipDirs: Set<String> = ["scripts", ".build", "DerivedData", "dist", ".git", "node_modules"]
         var files: [URL] = []
         let extSet = Set(extensions)
         for case let url as URL in enumerator {
+            let parts = url.pathComponents
+            if parts.contains(where: { skipDirs.contains($0) }) { continue }
             let ext = url.pathExtension.lowercased()
             if extSet.contains(ext) { files.append(url) }
         }
@@ -46,13 +49,61 @@ enum CodeChunker {
         guard let content = try? String(contentsOfFile: path, encoding: .utf8) else { return [] }
         let ext = URL(fileURLWithPath: path).pathExtension.lowercased()
         let lines = content.components(separatedBy: "\n")
+        let raw: [CodeChunk]
         switch ext {
-        case "swift", "kt":          return extractBraceChunks(lines, file: relativePath, lang: .swift)
-        case "ts", "tsx", "js", "jsx": return extractBraceChunks(lines, file: relativePath, lang: .typescript)
-        case "go":                   return extractBraceChunks(lines, file: relativePath, lang: .go)
-        case "rs":                   return extractBraceChunks(lines, file: relativePath, lang: .rust)
-        case "py":                   return extractPythonChunks(lines, file: relativePath)
-        default:                     return []
+        case "swift", "kt":            raw = extractBraceChunks(lines, file: relativePath, lang: .swift)
+        case "ts", "tsx", "js", "jsx": raw = extractBraceChunks(lines, file: relativePath, lang: .typescript)
+        case "go":                     raw = extractBraceChunks(lines, file: relativePath, lang: .go)
+        case "rs":                     raw = extractBraceChunks(lines, file: relativePath, lang: .rust)
+        case "py":                     raw = extractPythonChunks(lines, file: relativePath)
+        default:                       return []
+        }
+        return enrichWithParentContext(raw)
+    }
+
+    // Prefix each function/method chunk with its enclosing class name + property declarations.
+    // This lets agents understand WHERE to insert code without reading the full file.
+    private static func enrichWithParentContext(_ chunks: [CodeChunk]) -> [CodeChunk] {
+        let containers = chunks.filter {
+            $0.type == .class_ || $0.type == .struct_ || $0.type == .extension_
+        }
+        guard !containers.isEmpty else { return chunks }
+
+        let propPattern = try? NSRegularExpression(
+            pattern: #"^\s*(private\s+|public\s+|internal\s+|static\s+)*(var|let)\s+\w+"#
+        )
+
+        return chunks.map { chunk in
+            guard chunk.type == .function else { return chunk }
+
+            // Innermost container that spans this function
+            guard let parent = containers
+                .filter({ $0.startLine <= chunk.startLine && $0.endLine >= chunk.endLine })
+                .max(by: { $0.startLine < $1.startLine })
+            else { return chunk }
+
+            // Extract up to 6 property declarations from the parent body
+            let parentLines = parent.body.components(separatedBy: "\n")
+            let props = parentLines.compactMap { line -> String? in
+                let ns = NSRange(line.startIndex..., in: line)
+                guard propPattern?.firstMatch(in: line, range: ns) != nil else { return nil }
+                return line.trimmingCharacters(in: .whitespaces)
+            }.prefix(6)
+
+            var header = "// \(parent.type.rawValue) \(parent.name) · \(chunk.file):\(chunk.startLine)\n"
+            if !props.isEmpty {
+                header += "// \(props.joined(separator: "; "))\n"
+            }
+
+            return CodeChunk(
+                file: chunk.file,
+                startLine: chunk.startLine,
+                endLine: chunk.endLine,
+                name: chunk.name,
+                type: chunk.type,
+                signature: chunk.signature,
+                body: header + chunk.body
+            )
         }
     }
 

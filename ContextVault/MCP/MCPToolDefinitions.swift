@@ -6,7 +6,15 @@ enum MCPToolDefinitions {
             "get_project_context",
             description: """
             ══ CALL THIS FIRST — before any other action, every session ══
-            Returns: project slug, rootPath, note index, and 'context.md' (recent decisions + state).
+            Returns: project slug, rootPath, note index, 'context.md' (recent state),
+            and ▸map — a compact file→symbol map of the whole codebase.
+
+            ── ▸map — use it to skip exploration ──
+            Each line: "path/File.swift c:ClassName@12 f:method@40 s:Struct@88 …"
+            Prefixes: c=class s=struct e=enum x=extension f=func · @N = start line.
+            If you already know which file to edit (e.g. the task names it), find it in ▸map
+            and go STRAIGHT to read_file with rootPath + "/" + the path — no search_code needed.
+            Use search_code only when you DON'T know where the relevant code lives.
 
             ── If no project found for your path ──
             DO NOT create a project yourself. Tell the user:
@@ -20,7 +28,8 @@ enum MCPToolDefinitions {
                search_code("natural words")  →  BM25 over ALL indexed functions/classes/structs
                Costs ~80–200 tokens. Alternative (grep + Read file) costs ~1 500 tokens. 10–20× cheaper.
                Rule: NEVER use Bash grep + Read to explore code when the index exists.
-               Workflow: search_code → read_chunk (if more context needed) → Bash Read (last resort only)
+               Workflow: search_code → write code directly from chunk bodies → read_chunk only if a chunk was cut off
+               ⚠️  Chunk bodies already contain class context. Do NOT call read_file to "verify" — trust the results.
 
             2. CODE SEARCH (when indexedAt is null)
                Use index_codebase for a symbol map (names + locations).
@@ -154,60 +163,59 @@ enum MCPToolDefinitions {
         tool(
             "search_code",
             description: """
-            BM25 semantic search over ALL indexed function/class/struct bodies.
-            Returns matching chunks with full code inline — no file reads needed.
+            BM25 search over ALL indexed function/class/struct bodies. Returns full code inline.
+            10–20× cheaper than read_file. Use this first — not grep, not directory listing.
 
-            ALWAYS USE THIS instead of Bash grep + Read file when the index exists.
-            Token cost: search_code ≈ 80 tokens vs grep + Read ≈ 800 tokens (10× cheaper).
+            ── QUERY — use natural words, not exact symbol names ──
+            camelCase and snake_case are split automatically:
+              ✓ "websocket handshake"   → finds handleWsHandshake, WebSocketHandshakeManager…
+              ✓ "auth token expire"     → finds checkTokenExpiry, invalidateSession…
+              ✓ "struct CodeChunk"      → finds the CodeChunk struct definition
+              ✗ "fetchWebSocketHandshake"  → too specific, may miss synonyms
 
-            TOKENIZER — camelCase and snake_case are expanded automatically:
-              "fetchUserProfile"  → searches: fetch · user · profile · fetchuserprofile
-              "websocket_handshake" → searches: websocket · handshake
-            So query with natural words, not exact symbol names:
-              ✓ search_code("websocket handshake")   ← finds fetchWebSocketHandshake, handleWsHandshake…
-              ✓ search_code("json compress array")   ← finds SmartCrusher.crush, compressJSON…
-              ✓ search_code("auth token expire")     ← finds checkTokenExpiry, invalidateSession…
-              ✗ search_code("fetchWebSocketHandshake") ← too specific, may miss synonyms
+            ── RESULT FORMAT ──
+            Each match looks like:
+              ▸ /absolute/path/to/file.swift:startLine-endLine [type name]
+              // class ParentClass · relative/file.swift:line   ← class context header
+              // var property; let other                         ← key parent properties
+              <full function or type body>
 
-            RANKING — results sorted by BM25 relevance score.
-            Score > 3.0 → strong match. Score < 1.0 → weak, likely noise.
-            The index covers the full codebase (not just top N chunks).
+            ── PATHS ARE ABSOLUTE ──
+            The path after ▸ is the COMPLETE path, ready to use directly in read_file.
+            Do NOT reconstruct it. Do NOT prepend anything. Copy it as-is.
 
-            RESULT FORMAT per chunk:
-              file: path/to/file.swift
-              lines: 42–98  (startLine–endLine)
-              type: function | class | struct | enum | extension
-              name: FunctionOrTypeName
-              score: 4.23
-              body: <full source code>
-            Chunks > 80 lines are CCR-offloaded — call retrieve(hash) only if needed.
+            ── AFTER YOU GET RESULTS — write code immediately ──
+            Each chunk body contains the full implementation with its class context.
+            You have enough to write correct code after 1-3 searches.
+            Do NOT call read_file "just to be sure" — trust the chunk bodies.
+            If a chunk is cut off with [N lines — retrieve(hash:"…")] call retrieve() for the rest.
 
-            WORKFLOW:
-              1. search_code("concept") → scan results, read bodies inline
-              2. If you need more context around a chunk: read_chunk(project, file, line)
-              3. Only use Bash Read as a last resort (no index, or need surrounding context)
+            ── WORKFLOW ──
+              1. search_code("specific concept") → read chunk bodies inline
+              2. search_code again with a different query if the first missed something
+              3. Output your solution — stop searching after 3 calls
 
-            Requires full index (indexedAt set in get_project_context).
+            Requires full index. If not indexed: ask user to click Re-index in ContextVault app.
             """,
             required: ["project", "query"],
             properties: [
                 "project": ["type": "string", "description": "Project slug (from get_project_context)"],
-                "query":   ["type": "string", "description": "Natural language keywords — camelCase expanded, snake_case split, stop-words removed"],
-                "topK":    ["type": "integer", "description": "Max results (default: 5, max recommended: 20)"]
+                "query":   ["type": "string", "description": "Natural language keywords — camelCase/snake_case expanded automatically"],
+                "topK":    ["type": "integer", "description": "Max results (default: 3, hard-capped at 5 — higher just adds noise)"]
             ]
         ),
         tool(
             "read_chunk",
             description: """
-            Read a specific code chunk by file path and start line.
-            Use after search_code to re-read a chunk you already identified.
-            Much cheaper than reading the whole file with a Read tool.
+            Read a specific code chunk by file and start line (from a prior search_code result).
+            Cheaper than reading the whole file. Use when you need a chunk you've already located.
+            Pass the absolute path exactly as shown in the search_code ▸ header.
             """,
             required: ["project", "file", "line"],
             properties: [
                 "project": ["type": "string", "description": "Project slug"],
-                "file":    ["type": "string", "description": "File path relative to project root (from search_code result)"],
-                "line":    ["type": "integer", "description": "Start line number (from search_code result)"]
+                "file":    ["type": "string", "description": "Absolute file path from the ▸ header in search_code results"],
+                "line":    ["type": "integer", "description": "Start line number from search_code result"]
             ]
         ),
         tool(

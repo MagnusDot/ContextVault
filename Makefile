@@ -13,7 +13,80 @@ DMG        := dist/$(APP_NAME)-$(VERSION).dmg
 ICON_SRC := ContextVault/Assets.xcassets/AppIcon.appiconset/icon_1024.png
 ICON_DIR := ContextVault/Assets.xcassets/AppIcon.appiconset
 
-.PHONY: build dmg release tag clean icons
+VENV       := .venv
+PYTHON     := $(VENV)/bin/python3
+PIP        := $(VENV)/bin/pip
+
+BENCHMARK_PROJECT ?= claudevault
+BENCHMARK_RUNS    ?= 2
+BENCHMARK_MODEL   ?= gpt-4o-mini
+
+.PHONY: build dmg release tag clean icons \
+        install install-python install-node \
+        test test-unit test-benchmark \
+        benchmark
+
+# ── Install ──────────────────────────────────────────────────────────────────
+
+install: install-python install-node
+	@echo "✅ All dependencies installed"
+
+install-python: $(PYTHON)
+
+$(PYTHON):
+	@echo "→ Creating Python venv at $(VENV)/"
+	python3 -m venv $(VENV)
+	$(PIP) install --quiet --upgrade pip
+	@if [ -f scripts/requirements.txt ]; then \
+		$(PIP) install --quiet -r scripts/requirements.txt; \
+	fi
+	@echo "✅ Python venv ready  ($(shell $(PYTHON) --version))"
+
+install-node:
+	@command -v node >/dev/null 2>&1 || (echo "❌ node not found — install via nvm or brew" && exit 1)
+	@if [ -f package.json ]; then npm install --silent; fi
+	@echo "✅ Node $(shell node --version)"
+
+# ── Tests ─────────────────────────────────────────────────────────────────────
+
+test: test-unit
+
+test-unit:
+	@echo "→ Running Swift unit tests (no API key needed)…"
+	$(XCODEBUILD) \
+		-project $(PROJECT) \
+		-scheme $(SCHEME) \
+		-destination 'platform=macOS' \
+		-testPlan $(SCHEME) \
+		-skip-testing:ContextVaultTests/AgentLoopTests \
+		test 2>&1 | grep -E "(Test case|error:|BUILD)" | grep -v "^$$"
+
+test-benchmark: $(PYTHON)
+	@test -n "$(OPENAI_API_KEY)" || (echo "❌ OPENAI_API_KEY not set" && exit 1)
+	@echo "→ Running agent loop benchmark (1 run, smoke test)…"
+	$(XCODEBUILD) \
+		-project $(PROJECT) \
+		-scheme $(SCHEME) \
+		-destination 'platform=macOS' \
+		-testPlan $(SCHEME) \
+		-only-testing:ContextVaultTests/AgentLoopTests/benchmarkAllTasks \
+		test 2>&1 | grep -E "(passed|failed|SUCCEEDED|FAILED)"
+
+# ── Benchmark (Python) ────────────────────────────────────────────────────────
+
+benchmark: $(PYTHON)
+	@test -n "$(OPENAI_API_KEY)" || (echo "❌ OPENAI_API_KEY not set\n   export OPENAI_API_KEY=sk-..." && exit 1)
+	@command -v curl >/dev/null && curl -sf http://localhost:9877/mcp -X POST \
+		-H 'Content-Type: application/json' \
+		-d '{"jsonrpc":"2.0","method":"ping","params":{},"id":1}' >/dev/null 2>&1 \
+		|| echo "⚠️  ContextVault not running — WITH arm will fail"
+	$(PYTHON) scripts/benchmark.py \
+		--project $(BENCHMARK_PROJECT) \
+		--runs    $(BENCHMARK_RUNS) \
+		--model   $(BENCHMARK_MODEL)
+	@echo "→ Full results in /tmp/cv-benchmark.txt"
+
+# ── Build ─────────────────────────────────────────────────────────────────────
 
 build:
 	$(XCODEBUILD) \

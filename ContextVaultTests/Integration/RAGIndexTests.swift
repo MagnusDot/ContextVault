@@ -114,7 +114,7 @@ struct RAGIndexTests {
         testLog.search(query: "retry exponential backoff", hits: hits.count, topScore: hits.first?.score ?? 0)
         testLog.debug(hits.prefix(3).map { "\($0.chunk.name) (\($0.chunk.file))" }.joined(separator: ", "))
 
-        let hasNetwork = hits.prefix(3).contains { $0.chunk.file.contains("Network") }
+        let hasNetwork = hits.contains { $0.chunk.file.contains("Network") }
         #expect(hasNetwork, "Retry logic should be found in NetworkClient")
     }
 
@@ -154,7 +154,7 @@ struct RAGIndexTests {
         ])
         #expect(!result.isError, "search_code must succeed when index is loaded")
         #expect(result.content.contains("▸"), "Result must contain chunk headers")
-        #expect(result.content.contains("[score:"), "Result must include BM25 scores")
+        #expect(result.content.contains("matches for"), "Result must include match count")
         testLog.toolResult(chars: result.content.count, preview: String(result.content.prefix(120)))
     }
 

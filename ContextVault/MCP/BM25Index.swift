@@ -17,12 +17,18 @@ struct BM25Index {
     // Lookup by file:startLine
     private let byId: [String: CodeChunk]
 
+    // Reference graph (aider-style): how many OTHER chunks mention each defined symbol.
+    // A symbol called from 20 places is more important context than a one-off helper.
+    // Built purely from indexed chunk bodies — no tree-sitter, no external deps.
+    private let symbolRefs: [String: Int]
+
     init(chunks: [CodeChunk]) {
         self.chunks = chunks
 
         var inv: [String: [(Int, Double)]] = [:]
         var lengths: [Double] = []
         var idMap: [String: CodeChunk] = [:]
+        var bodyTokenSets: [Set<String>] = []
 
         for (idx, chunk) in chunks.enumerated() {
             let tokens = BM25Index.tokenize(chunk.body)
@@ -32,12 +38,31 @@ struct BM25Index {
                 inv[token, default: []].append((idx, tf))
             }
             idMap[chunk.id] = chunk
+            bodyTokenSets.append(Set(tokens))
         }
 
         self.invertedIndex = inv
         self.docLengths = lengths
         self.avgDocLen = lengths.isEmpty ? 1 : lengths.reduce(0, +) / Double(lengths.count)
         self.byId = idMap
+
+        // Reference counts: for each chunk, every defined symbol it mentions (other than its
+        // own name) scores one reference. The tokenizer keeps the full lowercased symbol word,
+        // so "MCPTools" in a body matches the chunk named "MCPTools".
+        let defined = Set(chunks.map { $0.name.lowercased() }).subtracting(["unknown", ""])
+        var refs: [String: Int] = [:]
+        for (idx, chunk) in chunks.enumerated() {
+            let selfName = chunk.name.lowercased()
+            for sym in bodyTokenSets[idx].intersection(defined) where sym != selfName {
+                refs[sym, default: 0] += 1
+            }
+        }
+        self.symbolRefs = refs
+    }
+
+    // How many distinct chunks reference this symbol elsewhere in the codebase.
+    func referenceCount(_ name: String) -> Int {
+        symbolRefs[name.lowercased()] ?? 0
     }
 
     // MARK: - Search
@@ -60,12 +85,19 @@ struct BM25Index {
             }
         }
 
+        // Centrality boost (aider-style): nudge well-referenced symbols up when relevance ties.
+        // Gentle by design — log-scaled and capped so it never overrides a clearly better match.
         return scores
             .enumerated()
             .filter { $0.element > 0 }
-            .sorted { $0.element > $1.element }
+            .map { (offset, score) -> (Int, Double) in
+                let refs = referenceCount(chunks[offset].name)
+                let boost = 1 + 0.08 * log2(Double(min(refs, 32) + 1))
+                return (offset, score * boost)
+            }
+            .sorted { $0.1 > $1.1 }
             .prefix(topK)
-            .map { ScoredChunk(chunk: chunks[$0.offset], score: $0.element) }
+            .map { ScoredChunk(chunk: chunks[$0.0], score: $0.1) }
     }
 
     func chunk(file: String, startLine: Int) -> CodeChunk? {
