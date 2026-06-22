@@ -100,6 +100,7 @@ final class MCPTools {
         ▸idx
         \(idxLines.isEmpty ? "∅" : idxLines.joined(separator: "\n"))
         \(mapSection)▸how use ▸map to jump straight to the file you need · search_code only when location is unknown · act as soon as you have enough, don't repeat a search or re-read what you already have
+        ▸ search_code returns patch-ready chunks + same-file anchors; don't read_file just to verify a result
         ▸ read/write notes freely — no limit
         """
 
@@ -358,8 +359,9 @@ final class MCPTools {
         }
 
         // Hard cap: large topK floods context with weak matches and triggers fishing loops.
-        let topK = min(args["topK"] as? Int ?? 3, 5)
-        let raw = rag.search(slug: slug, query: query, topK: max(topK, 5))
+        let requestedTopK = args["topK"] as? Int ?? 2
+        let topK = min(max(requestedTopK, 1), 3)
+        let raw = rag.search(slug: slug, query: query, topK: 5)
         guard let top = raw.first else {
             return .ok("∅ no match for '\(query)' — this concept likely doesn't exist in the codebase yet. If you're adding a NEW feature, proceed and write it without searching further.")
         }
@@ -379,23 +381,33 @@ final class MCPTools {
             ? "⚠ weak matches (\(Int(coverage * 100))% term coverage) — this may be a NEW feature not yet in the code. Don't keep searching; write it from the patterns below.\n\n"
             : ""
 
+        let index = rag.bm25(slug: slug)
+        var filesWithAnchors = Set<String>()
         let fmt = results.map { r -> String in
             let c = r.chunk
-            // Header: absolute path — use directly with read_file, no construction needed
+            // Header: absolute path — use directly with read_chunk or a targeted file read.
             let absPath = "\(project.rootPath)/\(c.file)"
             let header = "▸ \(absPath):\(c.startLine)-\(c.endLine) [\(c.type.rawValue) \(c.name)]"
-            // Body: cap at 50 lines to keep context lean
+            // Body: cap early to keep repeated agent turns lean.
             let lines = c.body.components(separatedBy: "\n")
             let body: String
-            if lines.count > 50 {
-                let inline = lines.prefix(40).joined(separator: "\n")
-                let rest = lines.dropFirst(40).joined(separator: "\n")
+            let inlineLineLimit = 48
+            if lines.count > inlineLineLimit {
+                let inline = lines.prefix(inlineLineLimit).joined(separator: "\n")
+                let rest = lines.dropFirst(inlineLineLimit).joined(separator: "\n")
                 let hash = CCRStore.shared.put(rest)
-                body = inline + "\n... [\(lines.count - 40) lines — retrieve(hash:\"\(hash)\")]"
+                body = inline + "\n... [\(lines.count - inlineLineLimit) lines — retrieve(hash:\"\(hash)\")]"
             } else {
                 body = c.body
             }
-            return "\(header)\n\(body)"
+            let anchors: String
+            if let index, !filesWithAnchors.contains(c.file) {
+                filesWithAnchors.insert(c.file)
+                anchors = "\n" + fileAnchors(file: c.file, index: index)
+            } else {
+                anchors = ""
+            }
+            return "\(header)\n\(body)\(anchors)"
         }.joined(separator: "\n\n---\n\n")
 
         // Cost of reading each unique file in full vs what we actually returned.
@@ -403,7 +415,7 @@ final class MCPTools {
         let searchTokens = results.reduce(0) { $0 + $1.chunk.body.count / 4 }
         let uniqueFiles  = Set(results.map(\.chunk.file)).count
         let avgFileTokens: Int
-        if let index = rag.bm25(slug: slug) {
+        if let index {
             let fileCount = max(1, Set(index.allChunks.map(\.file)).count)
             avgFileTokens = index.allChunks.reduce(0) { $0 + $1.body.count } / fileCount / 4
         } else {
@@ -412,7 +424,31 @@ final class MCPTools {
         let readTokens = uniqueFiles * avgFileTokens
         TokenSavingsStore.shared.record(slug: slug, savedTokens: readTokens - searchTokens)
 
-        return .ok("\(weakHint)\(results.count) match\(results.count == 1 ? "" : "es") for '\(query)':\n\n\(fmt)")
+        return .ok("\(weakHint)\(results.count) match\(results.count == 1 ? "" : "es") for '\(query)' — patch from these chunks + anchors; avoid read_file for the same file unless a required symbol is missing:\n\n\(fmt)")
+    }
+
+    private func fileAnchors(file: String, index: BM25Index) -> String {
+        let chunks = index.allChunks
+            .filter { $0.file == file }
+            .sorted { $0.startLine < $1.startLine }
+        guard !chunks.isEmpty else { return "▸anchors ∅" }
+
+        let limit = 22
+        let anchors = chunks.prefix(limit)
+            .map { "\(symbolPrefix($0.type)):\($0.name)@\($0.startLine)" }
+            .joined(separator: " ")
+        let more = chunks.count > limit ? " +\(chunks.count - limit)" : ""
+        return "▸anchors \(file) \(anchors)\(more)"
+    }
+
+    private func symbolPrefix(_ type: CodeChunk.ChunkType) -> String {
+        switch type {
+        case .class_: return "c"
+        case .struct_: return "s"
+        case .enum_: return "e"
+        case .extension_: return "x"
+        case .function: return "f"
+        }
     }
 
     // MARK: - read_chunk

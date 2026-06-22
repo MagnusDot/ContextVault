@@ -20,6 +20,7 @@ PIP        := $(VENV)/bin/pip
 BENCHMARK_PROJECT ?= claudevault
 BENCHMARK_RUNS    ?= 2
 BENCHMARK_MODEL   ?= gpt-4o-mini
+BENCHMARK_CV_SCHEMA ?= live
 
 .PHONY: build dmg release tag clean icons \
         install install-python install-node \
@@ -83,7 +84,8 @@ benchmark: $(PYTHON)
 	$(PYTHON) scripts/benchmark.py \
 		--project $(BENCHMARK_PROJECT) \
 		--runs    $(BENCHMARK_RUNS) \
-		--model   $(BENCHMARK_MODEL)
+		--model   $(BENCHMARK_MODEL) \
+		--cv-schema $(BENCHMARK_CV_SCHEMA)
 	@echo "→ Full results in /tmp/cv-benchmark.txt"
 
 # ── Build ─────────────────────────────────────────────────────────────────────
